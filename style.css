@@ -1,0 +1,262 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  text-transform: uppercase;
+  min-height: 100vh;
+}
+
+/* --- Welcome Screen --- */
+.center-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.welcome-content {
+  width: 100%;
+  max-width: 500px;
+}
+
+h1 { font-size: 2.5em; font-weight: bold; margin-bottom: 0.2em; line-height: 1.2; }
+h3 { font-weight: 300; margin-bottom: 1.5em; font-size: 1.1em; letter-spacing: 1px; }
+
+/* --- General Inputs & Buttons --- */
+button {
+  padding: 12px 20px;
+  font-size: 1em;
+  background-color: #00bcd4;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s;
+  text-transform: uppercase;
+  font-weight: bold;
+  white-space: nowrap;
+}
+button:hover { background-color: #0288a7; }
+button:active { transform: scale(0.98); }
+
+#controllerName {
+    background-color: #fff;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    padding: 15px;
+    width: 100%;
+    max-width: 300px;
+    box-sizing: border-box;
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    text-align: center;
+    text-transform: uppercase;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* --- Main Form Container --- */
+.form-container {
+  display: none;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* --- Grids for Inputs --- */
+.grid {
+  display: grid;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.top-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+.mid-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+.bottom-grid {
+  grid-template-columns: auto 1fr auto;
+  align-items: end;
+}
+
+select, input[type="text"], input[type="number"], input[type="date"] {
+  background-color: #fff;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.95em;
+  text-transform: uppercase;
+  height: 45px; /* Fixed height for alignment */
+}
+
+/* Specific fix for the prefixed input container */
+.input-with-prefix {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 45px;
+  box-sizing: border-box;
+}
+.input-with-prefix span {
+  color: #333;
+  font-weight: bold;
+  margin-right: 5px;
+}
+.input-with-prefix input {
+  border: none;
+  background: transparent;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+.input-with-prefix input:focus { outline: none; }
+
+::placeholder { color: #999; text-transform: uppercase;}
+select { color: #999; text-transform: uppercase; appearance: none; -webkit-appearance: none; }
+select.has-value { color: #333; }
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+.input-group label {
+  font-size: 0.75em;
+  margin-bottom: 5px;
+  text-align: left;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* --- Table Styles --- */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  margin-top: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff10;
+  min-width: 800px; /* Ensures table doesn't squish on mobile */
+}
+
+th, td {
+  border: 1px solid #ffffff30;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+th {
+  background: #00bcd4;
+  color: white;
+  font-weight: bold;
+}
+
+/* --- Status & Action Buttons --- */
+.status-ok { color: #4CAF50; font-weight: bold; }
+.status-bad { color: #f44336; font-weight: bold; }
+
+.delete-btn {
+  background-color: #f44336;
+  padding: 6px 12px;
+  font-size: 0.8em;
+  border-radius: 4px;
+}
+.delete-btn:hover { background-color: #d32f2f; }
+
+.edit-btn {
+  background-color: #FF9800;
+  padding: 6px 12px;
+  font-size: 0.8em;
+  border-radius: 4px;
+}
+.edit-btn:hover { background-color: #F57C00; }
+
+/* --- Action Buttons Area --- */
+.actions { 
+  margin-top: 20px; 
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px; 
+}
+
+#newReportBtn { background-color: #f44336; }
+#newReportBtn:hover { background-color: #d32f2f; }
+
+
+/* =========================================
+   RESPONSIVE DESIGN (Mobile & Tablet) 
+   ========================================= */
+
+@media screen and (max-width: 768px) {
+  h1 { font-size: 1.8em; }
+  
+  .form-container { padding: 10px; }
+  
+  /* Stack inputs vertically on mobile */
+  .grid, .top-grid, .mid-grid {
+    grid-template-columns: 1fr; /* Single column */
+    gap: 10px;
+  }
+  
+  /* Arrange the Calculate row specifically */
+  .bottom-grid {
+    grid-template-columns: 1fr 1fr; /* Split calculate and EZFW */
+    grid-template-rows: auto auto;
+    gap: 10px;
+  }
+  .calc-btn { grid-column: 1 / 2; }
+  .ezfw-group { grid-column: 2 / 3; }
+  .add-btn { 
+    grid-column: 1 / 3; 
+    margin-top: 5px;
+    padding: 15px; /* Larger tap area */
+  }
+
+  /* Stack action buttons 2x2 */
+  .actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Adjust table font size */
+  th, td { padding: 8px 4px; font-size: 0.85em; }
+}
+
+@media screen and (max-width: 480px) {
+  .actions {
+    grid-template-columns: 1fr; /* Stack buttons vertically on very small screens */
+  }
+  
+  h1 { font-size: 1.5em; }
+  h3 { font-size: 0.9em; }
+}
+
+/* --- Focus Effect (Light Red Highlight) --- */
+input:focus, select:focus {
+    background-color: #ffe6e6 !important;
+    border: 2px solid #ff5252 !important;
+    outline: none;
+    color: #000;
+    box-shadow: 0 0 8px rgba(255, 82, 82, 0.4);
+    transition: all 0.3s ease;
+}

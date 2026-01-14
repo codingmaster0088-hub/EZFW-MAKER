@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Load Master App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <!-- Link to External CSS -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Required library for JPG generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <div class="center-box" id="welcome">
+    <div class="welcome-content">
+      <h1>WELCOME LOAD MASTER</h1>
+      <h3>INVENTED BY RADOAN RASEL</h3>
+      <input type="text" id="controllerName" placeholder="LOAD CONTROLLER NAME">
+      <button onclick="showForm()">ENTER</button>
+    </div>
+  </div>
+
+  <div class="form-container" id="form-page">
+    
+    <div class="grid top-grid">
+      <select id="time" onchange="this.className='has-value'">
+        <option value="" disabled selected>SESSION</option>
+        <option value="MORNING">MORNING</option>
+        <option value="EVENING">EVENING</option>
+      </select>
+      <input type="date" id="flightDate">
+      <select id="acType" onchange="this.className='has-value'">
+        <option value="" disabled selected>A/C TYPE</option>
+        <option value="AIRBUS">AIRBUS</option>
+        <option value="BOEING">BOEING</option>
+        <option value="ATR">ATR</option>
+      </select>
+      <div class="input-with-prefix">
+        <span>BS-</span>
+        <input type="text" id="fltNo" placeholder="FLIGHT NO" inputmode="numeric">
+      </div>
+       <select id="from" onchange="updateTotalBaggageWeight(); this.className='has-value'">
+        <option value="" disabled selected>FROM</option>
+        <option>DAC</option><option>CGP</option><option>CXB</option>
+        <option>DXB</option><option>AUH</option><option>SHJ</option>
+        <option>RUH</option><option>JED</option><option>KUL</option><option>MLE</option>
+        <option>SIN</option><option>BKK</option><option>CAN</option><option>MAA</option>
+        <option>DOH</option><option>MCT</option>
+      </select>
+      <select id="destination" onchange="updateTotalBaggageWeight(); this.className='has-value'">
+        <option value="" disabled selected>DESTINATION</option>
+        <option>DAC</option><option>CGP</option><option>CXB</option>
+        <option>DXB</option><option>AUH</option><option>SHJ</option>
+        <option>RUH</option><option>JED</option><option>KUL</option><option>MLE</option>
+        <option>SIN</option><option>BKK</option><option>CAN</option><option>MAA</option>
+        <option>DOH</option><option>MCT</option>
+      </select>
+    </div>
+
+    <div class="grid mid-grid">
+      <div class="input-group">
+        <label for="pax">PASSENGER</label>
+        <input type="number" id="pax" placeholder="PAX" oninput="updateTotalBaggageWeight()">
+      </div>
+      <div class="input-group">
+        <label for="bag">TOTAL BAG</label>
+        <input type="number" id="bag">
+      </div>
+      <div class="input-group">
+        <label for="cgo">CARGO</label>
+        <input type="number" id="cgo">
+      </div>
+    </div>
+
+    <div class="grid bottom-grid">
+      <button onclick="calculateEZFW()" class="calc-btn">CALCULATE</button>
+      <div class="input-group ezfw-group">
+        <label for="ezfw">EZFW (AUTO)</label>
+        <input type="text" id="ezfw" readonly>
+      </div>
+      <button onclick="addRow()" id="addBtn" class="add-btn">ADD</button>
+    </div>
+    
+    <div class="actions">
+      <button onclick="goBack()">PREVIOUS</button>
+      <button onclick="downloadTable()">DOWNLOAD PDF</button>
+      <button onclick="downloadJPG()">DOWNLOAD JPG</button>
+      <button id="newReportBtn" onclick="newReport()">NEW REPORT</button>
+    </div>
+
+    <!-- Hidden Header for Data Usage -->
+    <div id="dataStore" style="display:none;">
+        <span id="storeSession"></span>
+        <span id="storeDate"></span>
+    </div>
+
+    <div class="table-responsive">
+      <table id="resultTable">
+        <thead>
+          <tr>
+            <th>EDIT</th>
+            <th>A/C TYPE</th>
+            <th>FLT NO</th>
+            <th>ORIGIN</th>
+            <th>DEST</th>
+            <th>PAX</th>
+            <th>BAG</th>
+            <th>CGO</th>
+            <th>EZFW</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Link to External JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>
