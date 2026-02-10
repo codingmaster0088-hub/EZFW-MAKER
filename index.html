@@ -11,25 +11,38 @@
 </head>
 <body>
 
+  <!-- Login Screen -->
   <div class="center-box" id="welcome">
     <div class="welcome-content">
       <h1>WELCOME LOAD MASTER</h1>
       <h3>INVENTED BY RADOAN RASEL</h3>
-      <input type="text" id="controllerName" placeholder="LOAD CONTROLLER NAME">
-      <button onclick="showForm()">ENTER</button>
+      <div class="login-area">
+        <input type="text" id="controllerName" placeholder="LOAD CONTROLLER NAME">
+        <br>
+        <button onclick="login()" class="login-btn">LOG IN</button>
+      </div>
     </div>
   </div>
 
+  <!-- Main App Screen -->
   <div class="form-container" id="form-page">
     
+    <!-- Header with Logout -->
+    <div class="app-header">
+       <div class="user-info">
+         <span>OFFICER: <b id="displayControllerName"></b></span>
+       </div>
+       <button onclick="logout()" class="logout-btn">LOG OUT</button>
+    </div>
+
     <div class="grid top-grid">
-      <select id="time" onchange="this.className='has-value'">
+      <select id="time" onchange="saveDataLocally(); this.className='has-value'">
         <option value="" disabled selected>SESSION</option>
         <option value="MORNING">MORNING</option>
         <option value="EVENING">EVENING</option>
       </select>
-      <input type="date" id="flightDate">
-      <select id="acType" onchange="this.className='has-value'">
+      <input type="date" id="flightDate" onchange="saveDataLocally()">
+      <select id="acType" onchange="toggleAirbusInputs(); this.className='has-value'">
         <option value="" disabled selected>A/C TYPE</option>
         <option value="AIRBUS">AIRBUS</option>
         <option value="BOEING">BOEING</option>
@@ -59,21 +72,44 @@
 
     <div class="grid mid-grid">
       <div class="input-group">
-        <label for="pax">PASSENGER</label>
-        <input type="number" id="pax" placeholder="PAX" oninput="updateTotalBaggageWeight()">
+        <label for="adult">ADULT</label>
+        <input type="number" id="adult" placeholder="0" oninput="updatePaxAndCalc()">
       </div>
       <div class="input-group">
+        <label for="child">CHILD</label>
+        <input type="number" id="child" placeholder="0" oninput="updatePaxAndCalc()">
+      </div>
+      <div class="input-group">
+        <label for="infant">INFANT</label>
+        <input type="number" id="infant" placeholder="0" oninput="updatePaxAndCalc()">
+      </div>
+      <div class="input-group">
+        <label for="totalPax">TOTAL PAX</label>
+        <input type="number" id="totalPax" readonly style="background-color: #e0e0e0; font-weight: bold;">
+      </div>
+      
+      <div class="input-group">
         <label for="bag">TOTAL BAG</label>
-        <input type="number" id="bag">
+        <input type="number" id="bag" oninput="calculateEZFW()">
       </div>
       <div class="input-group">
         <label for="cgo">CARGO</label>
-        <input type="number" id="cgo">
+        <input type="number" id="cgo" oninput="calculateEZFW()">
+      </div>
+
+      <!-- Airbus Specific Inputs -->
+      <div class="input-group airbus-field" style="display: none;">
+        <label for="uld">ULD (x68)</label>
+        <input type="number" id="uld" placeholder="0" oninput="calculateEZFW()">
+      </div>
+      <div class="input-group airbus-field" style="display: none;">
+        <label for="pmc">PMC (x97)</label>
+        <input type="number" id="pmc" placeholder="0" oninput="calculateEZFW()">
       </div>
     </div>
 
+    <!-- Bottom Grid without Calculate Button -->
     <div class="grid bottom-grid">
-      <button onclick="calculateEZFW()" class="calc-btn">CALCULATE</button>
       <div class="input-group ezfw-group">
         <label for="ezfw">EZFW (AUTO)</label>
         <input type="text" id="ezfw" readonly>
@@ -88,24 +124,22 @@
       <button id="newReportBtn" onclick="newReport()">NEW REPORT</button>
     </div>
 
-    <!-- Hidden Header for Data Usage -->
-    <div id="dataStore" style="display:none;">
-        <span id="storeSession"></span>
-        <span id="storeDate"></span>
-    </div>
-
     <div class="table-responsive">
       <table id="resultTable">
         <thead>
           <tr>
             <th>EDIT</th>
-            <th>A/C TYPE</th>
+            <th>A/C</th>
             <th>FLT NO</th>
-            <th>ORIGIN</th>
-            <th>DEST</th>
-            <th>PAX</th>
+            <th>ORG</th>
+            <th>DES</th>
+            <th>ADT</th>
+            <th>CHD</th>
+            <th>INF</th>
             <th>BAG</th>
             <th>CGO</th>
+            <th class="airbus-col">ULD</th>
+            <th class="airbus-col">PMC</th>
             <th>EZFW</th>
             <th>STATUS</th>
             <th>ACTION</th>

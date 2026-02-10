@@ -25,10 +25,17 @@ body {
   max-width: 500px;
 }
 
+.login-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px; /* Space between Input and Button */
+}
+
 h1 { font-size: 2.5em; font-weight: bold; margin-bottom: 0.2em; line-height: 1.2; }
 h3 { font-weight: 300; margin-bottom: 1.5em; font-size: 1.1em; letter-spacing: 1px; }
 
-/* --- General Inputs & Buttons --- */
+/* --- Buttons --- */
 button {
   padding: 12px 20px;
   font-size: 1em;
@@ -45,6 +52,21 @@ button {
 button:hover { background-color: #0288a7; }
 button:active { transform: scale(0.98); }
 
+/* specific login button style */
+.login-btn {
+    width: 100%;
+    max-width: 300px;
+    background-color: #00bcd4;
+}
+
+/* Logout Button */
+.logout-btn {
+    background-color: #f44336;
+    padding: 8px 15px;
+    font-size: 0.9em;
+}
+.logout-btn:hover { background-color: #d32f2f; }
+
 #controllerName {
     background-color: #fff;
     color: #333;
@@ -55,7 +77,6 @@ button:active { transform: scale(0.98); }
     max-width: 300px;
     box-sizing: border-box;
     font-size: 1.1em;
-    margin-bottom: 20px;
     text-align: center;
     text-transform: uppercase;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -70,6 +91,15 @@ button:active { transform: scale(0.98); }
   box-sizing: border-box;
 }
 
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
 /* --- Grids for Inputs --- */
 .grid {
   display: grid;
@@ -82,10 +112,10 @@ button:active { transform: scale(0.98); }
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 .mid-grid {
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); 
 }
 .bottom-grid {
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto; /* EZFW takes space, ADD button on right */
   align-items: end;
 }
 
@@ -99,10 +129,10 @@ select, input[type="text"], input[type="number"], input[type="date"] {
   box-sizing: border-box;
   font-size: 0.95em;
   text-transform: uppercase;
-  height: 45px; /* Fixed height for alignment */
+  height: 45px; 
 }
 
-/* Specific fix for the prefixed input container */
+/* Prefix Input */
 .input-with-prefix {
   display: flex;
   align-items: center;
@@ -146,7 +176,7 @@ select.has-value { color: #333; }
 .table-responsive {
   width: 100%;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch; 
   margin-top: 15px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.2);
@@ -156,7 +186,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   background: #ffffff10;
-  min-width: 800px; /* Ensures table doesn't squish on mobile */
+  min-width: 900px;
 }
 
 th, td {
@@ -176,82 +206,40 @@ th {
 .status-ok { color: #4CAF50; font-weight: bold; }
 .status-bad { color: #f44336; font-weight: bold; }
 
-.delete-btn {
-  background-color: #f44336;
-  padding: 6px 12px;
-  font-size: 0.8em;
-  border-radius: 4px;
-}
+.delete-btn { background-color: #f44336; padding: 6px 12px; border-radius: 4px; font-size: 0.8em;}
 .delete-btn:hover { background-color: #d32f2f; }
 
-.edit-btn {
-  background-color: #FF9800;
-  padding: 6px 12px;
-  font-size: 0.8em;
-  border-radius: 4px;
-}
+.edit-btn { background-color: #FF9800; padding: 6px 12px; border-radius: 4px; font-size: 0.8em; }
 .edit-btn:hover { background-color: #F57C00; }
 
-/* --- Action Buttons Area --- */
 .actions { 
   margin-top: 20px; 
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px; 
 }
-
 #newReportBtn { background-color: #f44336; }
 #newReportBtn:hover { background-color: #d32f2f; }
 
-
-/* =========================================
-   RESPONSIVE DESIGN (Mobile & Tablet) 
-   ========================================= */
-
+/* Responsive */
 @media screen and (max-width: 768px) {
   h1 { font-size: 1.8em; }
-  
   .form-container { padding: 10px; }
   
-  /* Stack inputs vertically on mobile */
-  .grid, .top-grid, .mid-grid {
-    grid-template-columns: 1fr; /* Single column */
-    gap: 10px;
-  }
-  
-  /* Arrange the Calculate row specifically */
-  .bottom-grid {
-    grid-template-columns: 1fr 1fr; /* Split calculate and EZFW */
-    grid-template-rows: auto auto;
-    gap: 10px;
-  }
-  .calc-btn { grid-column: 1 / 2; }
-  .ezfw-group { grid-column: 2 / 3; }
-  .add-btn { 
-    grid-column: 1 / 3; 
-    margin-top: 5px;
-    padding: 15px; /* Larger tap area */
-  }
-
-  /* Stack action buttons 2x2 */
-  .actions {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  /* Adjust table font size */
+  .grid, .top-grid { grid-template-columns: 1fr; gap: 10px; }
+  .mid-grid { grid-template-columns: 1fr 1fr; }
+  .bottom-grid { grid-template-columns: 1fr auto; }
+  .actions { grid-template-columns: 1fr 1fr; }
   th, td { padding: 8px 4px; font-size: 0.85em; }
 }
 
 @media screen and (max-width: 480px) {
-  .actions {
-    grid-template-columns: 1fr; /* Stack buttons vertically on very small screens */
-  }
-  
+  .actions { grid-template-columns: 1fr; }
   h1 { font-size: 1.5em; }
   h3 { font-size: 0.9em; }
 }
 
-/* --- Focus Effect (Light Red Highlight) --- */
+/* Focus Effect */
 input:focus, select:focus {
     background-color: #ffe6e6 !important;
     border: 2px solid #ff5252 !important;
