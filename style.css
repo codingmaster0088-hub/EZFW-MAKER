@@ -29,7 +29,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px; /* Space between Input and Button */
+    gap: 15px;
 }
 
 h1 { font-size: 2.5em; font-weight: bold; margin-bottom: 0.2em; line-height: 1.2; }
@@ -52,14 +52,12 @@ button {
 button:hover { background-color: #0288a7; }
 button:active { transform: scale(0.98); }
 
-/* specific login button style */
 .login-btn {
     width: 100%;
     max-width: 300px;
     background-color: #00bcd4;
 }
 
-/* Logout Button */
 .logout-btn {
     background-color: #f44336;
     padding: 8px 15px;
@@ -82,7 +80,7 @@ button:active { transform: scale(0.98); }
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-/* --- Main Form Container --- */
+/* --- Main Form --- */
 .form-container {
   display: none;
   padding: 20px;
@@ -100,7 +98,7 @@ button:active { transform: scale(0.98); }
     border-bottom: 1px solid rgba(255,255,255,0.2);
 }
 
-/* --- Grids for Inputs --- */
+/* --- Grids --- */
 .grid {
   display: grid;
   gap: 15px;
@@ -115,7 +113,7 @@ button:active { transform: scale(0.98); }
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); 
 }
 .bottom-grid {
-  grid-template-columns: 1fr auto; /* EZFW takes space, ADD button on right */
+  grid-template-columns: 1fr auto; 
   align-items: end;
 }
 
@@ -132,7 +130,6 @@ select, input[type="text"], input[type="number"], input[type="date"] {
   height: 45px; 
 }
 
-/* Prefix Input */
 .input-with-prefix {
   display: flex;
   align-items: center;
@@ -225,7 +222,6 @@ th {
 @media screen and (max-width: 768px) {
   h1 { font-size: 1.8em; }
   .form-container { padding: 10px; }
-  
   .grid, .top-grid { grid-template-columns: 1fr; gap: 10px; }
   .mid-grid { grid-template-columns: 1fr 1fr; }
   .bottom-grid { grid-template-columns: 1fr auto; }
