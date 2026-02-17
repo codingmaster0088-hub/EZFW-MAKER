@@ -1,6 +1,5 @@
 // --- DATABASE & CONSTANTS ---
 
-// DOW Database (Based on attachments)
 const AIRCRAFT_DATABASE = {
     // AIRBUS FLEET (S2-AL...)
     "ALA": { "2/0": 119310, "2/9": 122962, "2/10": 123037, "2/11": 123112, "3/0": 119390, "3/9": 123042, "3/10": 123117, "3/11": 123192, "4/0": 119470, "4/9": 123122, "4/10": 123197, "4/11": 123272 },
@@ -13,9 +12,9 @@ const AIRCRAFT_DATABASE = {
     "AJG": { "2/4": 42591, "2/5": 42666, "2/6": 42741, "3/4": 42671, "3/5": 42746, "3/6": 42821 },
     "AJH": { "2/4": 42574, "2/5": 42649, "2/6": 42724, "3/4": 42654, "3/5": 42729, "3/6": 42804 },
     "BBG": { "2/0": 42534, "2/4": 42914, "2/5": 43009, "3/0": 42629, "3/4": 43009, "3/5": 43104 },
-    "BBH": { "2/0": 42534, "2/4": 42914, "2/5": 43009, "3/0": 42629, "3/4": 43009, "3/5": 43104 }, // Assuming same as BBG based on prompt context
+    "BBH": { "2/0": 42534, "2/4": 42914, "2/5": 43009, "3/0": 42629, "3/4": 43009, "3/5": 43104 },
 
-    // ATR FLEET (Generic for Reg starts with AK)
+    // ATR FLEET
     "ATR_GENERIC": { "2/2": 14015, "3/2": 14095, "2/0": 13865, "3/0": 13945 }
 };
 
@@ -154,7 +153,7 @@ function handleRegInput() {
         // Airbus
         options = ["2/0", "2/9", "2/10", "2/11", "3/0", "3/9", "3/10", "3/11", "4/0", "4/9", "4/10", "4/11"];
     } else if (["AJE", "AJF", "AJG", "AJH", "BBG", "BBH"].includes(input)) {
-        // Boeing (Note: BBG/H have specific limited options in DB, but generalized here based on typical 737 ops or DB specific)
+        // Boeing
         if(input.startsWith("BB")) {
             options = ["2/0", "2/4", "2/5", "3/0", "3/4", "3/5"];
         } else {
@@ -187,7 +186,7 @@ function getFormattedReg(input) {
 function getAircraftType(reg) {
     if (["ALA", "ALB", "ALD"].includes(reg)) return "AIRBUS";
     if (reg.startsWith("AK")) return "ATR";
-    return "BOEING"; // Default to Boeing for AJE, BBG etc
+    return "BOEING"; 
 }
 
 function toggleAirbusInputs(regInput) {
@@ -266,7 +265,11 @@ function updateTotalBaggageWeight() {
   if (from === 'CAN' && (dest === 'DAC' || dest === 'CGP')) perPaxBagWeight = 31;
   else if ((from === 'DAC' && dest === 'CGP') || (from === 'CGP' && dest === 'DAC')) perPaxBagWeight = 15;
   else if ((from === 'DAC' && dest === 'CXB') || (from === 'CXB' && dest === 'DAC')) perPaxBagWeight = 10;
-  else if (dest === 'DAC' || dest === 'CGP' || dest === 'CXB') perPaxBagWeight = baggageIn[from] || 0;
+  // NEW LOGIC FOR CCU
+  else if (from === 'DAC' && dest === 'CCU') perPaxBagWeight = 12;
+  else if (from === 'CCU' && dest === 'DAC') perPaxBagWeight = 21;
+  // END NEW LOGIC
+  else if (dest === 'DAC' || dest === 'CGP' || dest === 'CXB' || dest === 'CCU') perPaxBagWeight = baggageIn[from] || 0;
   else perPaxBagWeight = baggageOut[dest] || 0;
   
   bagInput.value = (bagPayingPax * perPaxBagWeight).toFixed(0);
@@ -341,7 +344,7 @@ function addRow() {
   saveDataLocally();
   renderTableFromData();
   clearInputs();
-  document.getElementById('fltNo').focus();
+  document.getElementById('acReg').focus(); // FOCUS RESET TO A/C REG
 }
 
 function renderTableFromData() {
