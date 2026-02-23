@@ -24,7 +24,6 @@ const MAX_ZFW = {
     "ATR": 21000
 };
 
-// Baggage Logic
 const baggageOut = {
   DXB: 18, SHJ: 19, AUH: 19, SIN: 18, CAN: 14, DOH: 18, JED: 19,
   BKK: 12, MLE: 13, KUL: 16, RUH: 19, MAA: 12, MCT: 20
@@ -131,68 +130,67 @@ function handleFlightNoInput() {
     if (org && des) {
         document.getElementById('from').value = org;
         document.getElementById('destination').value = des;
-        // Trigger visual update class
         document.getElementById('from').className = 'has-value';
         document.getElementById('destination').className = 'has-value';
         updateTotalBaggageWeight();
     }
 }
 
-// --- AIRCRAFT REG & TYPE LOGIC ---
+// --- AIRCRAFT REG HANDLING ---
 function handleRegInput() {
-    let input = document.getElementById('acReg').value.toUpperCase();
-    if(input.length > 3) input = input.substring(0,3);
-    document.getElementById('acReg').value = input;
-
-    const crewConfSelect = document.getElementById('crewConf');
-    crewConfSelect.innerHTML = '<option value="" disabled selected>CREW CONF</option>';
+    let inputRaw = document.getElementById('acReg').value.toUpperCase();
+    document.getElementById('acReg').value = inputRaw;
     
-    // Determine Type and Populate Crew Conf
+    // Extract key if user selected from dropdown (e.g. "S2-ALA" -> "ALA")
+    // Or if user just typed "ALA" keep "ALA"
+    let key = inputRaw;
+    if(inputRaw.includes("-")) {
+        key = inputRaw.split("-")[1];
+    } else if(inputRaw.startsWith("AK") && inputRaw.length === 2) {
+        // Just keeping generic if typed partially, but main logic uses full code
+    }
+
+    const crewConfList = document.getElementById('crewConfList');
+    crewConfList.innerHTML = ''; // Clear options
+    
+    // Determine options
     let options = [];
-    if (["ALA", "ALB", "ALD"].includes(input)) {
-        // Airbus
+    if (["ALA", "ALB", "ALD"].includes(key)) {
         options = ["2/0", "2/9", "2/10", "2/11", "3/0", "3/9", "3/10", "3/11", "4/0", "4/9", "4/10", "4/11"];
-    } else if (["AJE", "AJF", "AJG", "AJH", "BBG", "BBH"].includes(input)) {
-        // Boeing
-        if(input.startsWith("BB")) {
+    } else if (["AJE", "AJF", "AJG", "AJH", "BBG", "BBH"].includes(key)) {
+        if(key.startsWith("BB")) {
             options = ["2/0", "2/4", "2/5", "3/0", "3/4", "3/5"];
         } else {
             options = ["2/4", "2/5", "2/6", "3/4", "3/5", "3/6"];
         }
-    } else if (input.startsWith("AK")) {
-        // ATR
+    } else if (key.startsWith("AK")) {
         options = ["2/2", "3/2", "2/0", "3/0"];
-    } else {
-        // Unknown Reg - clear
-        crewConfSelect.className = '';
-        return; 
     }
 
     options.forEach(opt => {
         const el = document.createElement('option');
         el.value = opt;
-        el.textContent = opt;
-        crewConfSelect.appendChild(el);
+        crewConfList.appendChild(el);
     });
 
-    toggleAirbusInputs(input);
+    toggleAirbusInputs(key);
 }
 
 function getFormattedReg(input) {
-    if (input === "BBG" || input === "BBH") return "PK-" + input;
-    return "S2-" + input;
+    if (input.includes("-")) return input; // Already formatted
+    if (["BBG", "BBH"].includes(input)) return "PK-" + input;
+    if (input.length === 3) return "S2-" + input;
+    return input;
 }
 
-function getAircraftType(reg) {
-    if (["ALA", "ALB", "ALD"].includes(reg)) return "AIRBUS";
-    if (reg.startsWith("AK")) return "ATR";
+function getAircraftType(regKey) {
+    if (["ALA", "ALB", "ALD"].includes(regKey)) return "AIRBUS";
+    if (regKey.startsWith("AK")) return "ATR";
     return "BOEING"; 
 }
 
-function toggleAirbusInputs(regInput) {
-    const reg = regInput || document.getElementById('acReg').value.toUpperCase();
-    const type = getAircraftType(reg);
-    
+function toggleAirbusInputs(regKey) {
+    const type = getAircraftType(regKey);
     const airbusFields = document.querySelectorAll('.airbus-field');
     
     if (type === 'AIRBUS') {
@@ -209,15 +207,19 @@ function toggleAirbusInputs(regInput) {
 // --- CALCULATIONS ---
 
 function calculateEZFW() {
-    const regInput = document.getElementById('acReg').value.toUpperCase();
+    let inputRaw = document.getElementById('acReg').value.toUpperCase();
+    let key = inputRaw;
+    if(inputRaw.includes("-")) {
+        key = inputRaw.split("-")[1];
+    }
+
     const crewConf = document.getElementById('crewConf').value;
     
-    // Get DOW
     let dow = 0;
-    if (regInput.startsWith("AK")) {
+    if (key.startsWith("AK")) {
          dow = AIRCRAFT_DATABASE["ATR_GENERIC"][crewConf] || 0;
-    } else if (AIRCRAFT_DATABASE[regInput]) {
-         dow = AIRCRAFT_DATABASE[regInput][crewConf] || 0;
+    } else if (AIRCRAFT_DATABASE[key]) {
+         dow = AIRCRAFT_DATABASE[key][crewConf] || 0;
     }
 
     const adult = parseInt(document.getElementById('adult').value) || 0;
@@ -230,7 +232,7 @@ function calculateEZFW() {
     const uldCount = parseFloat(document.getElementById('uld').value) || 0;
     const pmcCount = parseFloat(document.getElementById('pmc').value) || 0;
 
-    const type = getAircraftType(regInput);
+    const type = getAircraftType(key);
 
     const totalPassengerWeight = (adult * ADULT_WEIGHT) + (child * CHILD_WEIGHT) + (infant * INFANT_WEIGHT);
     
@@ -265,10 +267,8 @@ function updateTotalBaggageWeight() {
   if (from === 'CAN' && (dest === 'DAC' || dest === 'CGP')) perPaxBagWeight = 31;
   else if ((from === 'DAC' && dest === 'CGP') || (from === 'CGP' && dest === 'DAC')) perPaxBagWeight = 15;
   else if ((from === 'DAC' && dest === 'CXB') || (from === 'CXB' && dest === 'DAC')) perPaxBagWeight = 10;
-  // NEW LOGIC FOR CCU
   else if (from === 'DAC' && dest === 'CCU') perPaxBagWeight = 12;
   else if (from === 'CCU' && dest === 'DAC') perPaxBagWeight = 21;
-  // END NEW LOGIC
   else if (dest === 'DAC' || dest === 'CGP' || dest === 'CXB' || dest === 'CCU') perPaxBagWeight = baggageIn[from] || 0;
   else perPaxBagWeight = baggageOut[dest] || 0;
   
@@ -287,16 +287,19 @@ function addRow() {
   }
 
   const currentEZFW = calculateEZFW();
-  const regInput = document.getElementById('acReg').value.toUpperCase();
+  const inputRaw = document.getElementById('acReg').value.toUpperCase();
   const fltNoInput = document.getElementById('fltNo').value;
   const crewConf = document.getElementById('crewConf').value;
 
-  if(!regInput || !fltNoInput || !crewConf) {
+  if(!inputRaw || !fltNoInput || !crewConf) {
      alert('PLEASE FILL REGISTRATION, CREW CONFIG AND FLIGHT NUMBER');
      return;
   }
 
-  const type = getAircraftType(regInput);
+  let key = inputRaw;
+  if(inputRaw.includes("-")) key = inputRaw.split("-")[1];
+
+  const type = getAircraftType(key);
   const maxZfw = MAX_ZFW[type];
   
   let statusText = "WITHIN LIMIT";
@@ -307,9 +310,9 @@ function addRow() {
   }
 
   const rowObject = {
-    reg: getFormattedReg(regInput),
-    regCode: regInput, // Store raw code for edit
-    crewConf: crewConf, // Store for edit
+    reg: getFormattedReg(key),
+    regCode: inputRaw, // Store exactly what user typed/selected
+    crewConf: crewConf,
     fltNo: 'BS-' + fltNoInput,
     origin: document.getElementById('from').value || '',
     dest: document.getElementById('destination').value || '',
@@ -334,7 +337,6 @@ function addRow() {
       tableData.push(rowObject);
   }
 
-  // Sort by Flight Number
   tableData.sort((a, b) => {
       const fltA = parseInt(a.fltNo.replace(/\D/g, '')) || 0;
       const fltB = parseInt(b.fltNo.replace(/\D/g, '')) || 0;
@@ -344,7 +346,7 @@ function addRow() {
   saveDataLocally();
   renderTableFromData();
   clearInputs();
-  document.getElementById('acReg').focus(); // FOCUS RESET TO A/C REG
+  document.getElementById('acReg').focus();
 }
 
 function renderTableFromData() {
@@ -354,7 +356,6 @@ function renderTableFromData() {
     tableData.forEach((row, index) => {
         const tr = tbody.insertRow();
         
-        // Edit
         const editCell = tr.insertCell();
         const editBtn = document.createElement('button');
         editBtn.textContent = 'EDIT';
@@ -362,7 +363,6 @@ function renderTableFromData() {
         editBtn.onclick = function() { editRow(index); };
         editCell.appendChild(editBtn);
 
-        // Data
         tr.insertCell().textContent = row.reg;
         tr.insertCell().textContent = row.fltNo;
         tr.insertCell().textContent = row.origin;
@@ -386,7 +386,6 @@ function renderTableFromData() {
         statusCell.textContent = row.status;
         statusCell.className = row.isLimitCrossed ? 'status-bad' : 'status-ok';
 
-        // Delete
         const actionCell = tr.insertCell();
         const deleteBtn = document.createElement('button');
         deleteBtn.textContent = 'DELETE';
@@ -401,11 +400,8 @@ function editRow(index) {
   const tr = document.querySelector('#resultTable tbody').rows[index];
   editingRow = tr;
 
-  const regInput = data.regCode;
-  document.getElementById('acReg').value = regInput;
-  handleRegInput(); // Populate Crew Conf options based on Reg
-  
-  // Set Crew Conf (Must happen after handleRegInput populates options)
+  document.getElementById('acReg').value = data.regCode;
+  handleRegInput(); // Populate Dropdown
   document.getElementById('crewConf').value = data.crewConf;
 
   document.getElementById('fltNo').value = data.fltNo.replace('BS-', '');
@@ -420,7 +416,11 @@ function editRow(index) {
   document.getElementById('bag').value = data.bag;
   document.getElementById('cgo').value = data.cgo;
 
-  const type = getAircraftType(regInput);
+  // Key extraction for type check
+  let key = data.regCode;
+  if(key.includes("-")) key = key.split("-")[1];
+  const type = getAircraftType(key);
+
   if (type === 'AIRBUS') {
       document.getElementById('uld').value = data.uld;
       document.getElementById('pmc').value = data.pmc;
@@ -448,10 +448,8 @@ function clearInputs() {
     document.getElementById('uld').value = '';
     document.getElementById('pmc').value = '';
     document.getElementById('ezfw').value = '';
-    document.getElementById('acReg').value = '';
     
-    // Clear selections
-    document.getElementById('crewConf').innerHTML = '<option value="" disabled selected>CREW CONF</option>';
+    // DO NOT CLEAR A/C REG OR CREW CONF (As per request)
     
     const fromSelect = document.getElementById('from');
     fromSelect.selectedIndex = 0;
@@ -498,6 +496,10 @@ function newReport() {
         tableData = [];
         saveDataLocally();
         renderTableFromData();
+        
+        // Clear Reg and Crew only on New Report
+        document.getElementById('acReg').value = '';
+        document.getElementById('crewConf').value = '';
         clearInputs();
     }
 }
@@ -533,7 +535,6 @@ function getCleanTableClone() {
     const originalTable = document.getElementById('resultTable');
     const tableClone = originalTable.cloneNode(true);
     
-    // Remove Action (Last) and Edit (First)
     tableClone.rows[0].deleteCell(-1); 
     tableClone.rows[0].deleteCell(0);
 

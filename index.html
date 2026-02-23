@@ -43,15 +43,37 @@
       </select>
       <input type="date" id="flightDate" onchange="saveDataLocally()">
       
-      <!-- NEW: A/C REG Input -->
+      <!-- UPDATED: A/C REG (Input + Datalist for Dropdown & Manual) -->
       <div class="input-group-row">
-          <input type="text" id="acReg" placeholder="A/C REG (e.g. AJE)" oninput="handleRegInput()" maxlength="3">
+          <input list="acRegList" type="text" id="acReg" placeholder="A/C REG (e.g. AJE)" oninput="handleRegInput()" onchange="this.className='has-value'">
+          <datalist id="acRegList">
+            <!-- Airbus -->
+            <option value="S2-ALA">
+            <option value="S2-ALB">
+            <option value="S2-ALD">
+            <!-- Boeing -->
+            <option value="S2-AJE">
+            <option value="S2-AJF">
+            <option value="S2-AJG">
+            <option value="S2-AJH">
+            <option value="PK-BBG">
+            <option value="PK-BBH">
+            <!-- ATRs -->
+            <option value="S2-AKA">
+            <option value="S2-AKB">
+            <option value="S2-AKC">
+            <option value="S2-AKD">
+            <option value="S2-AKE">
+          </datalist>
       </div>
       
-      <!-- NEW: Crew Configuration -->
-      <select id="crewConf" onchange="calculateEZFW(); this.className='has-value'">
-        <option value="" disabled selected>CREW CONF</option>
-      </select>
+      <!-- UPDATED: CREW CONF (Input + Datalist) -->
+      <div class="input-group-row">
+          <input list="crewConfList" type="text" id="crewConf" placeholder="CREW CONF" oninput="calculateEZFW()" onchange="this.className='has-value'">
+          <datalist id="crewConfList">
+              <!-- Populated by JS -->
+          </datalist>
+      </div>
 
       <div class="input-with-prefix">
         <span>BS-</span>
@@ -102,7 +124,7 @@
         <input type="number" id="cgo" oninput="calculateEZFW()">
       </div>
 
-      <!-- Airbus Specific Inputs (Hidden for Boeing/ATR) -->
+      <!-- Airbus Specific Inputs -->
       <div class="input-group airbus-field" style="display: none;">
         <label for="uld">ULD (x68)</label>
         <input type="number" id="uld" placeholder="0" oninput="calculateEZFW()">
@@ -133,7 +155,7 @@
         <thead>
           <tr>
             <th>EDIT</th>
-            <th>REG</th> <!-- Changed from A/C to REG -->
+            <th>REG</th>
             <th>FLT NO</th>
             <th>ORG</th>
             <th>DES</th>
