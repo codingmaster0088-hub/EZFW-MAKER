@@ -1,37 +1,21 @@
 // --- DATABASE & CONSTANTS ---
 
 const AIRCRAFT_DATABASE = {
-    // AIRBUS FLEET (S2-AL...)
     "ALA": { "2/0": 119310, "2/9": 122962, "2/10": 123037, "2/11": 123112, "3/0": 119390, "3/9": 123042, "3/10": 123117, "3/11": 123192, "4/0": 119470, "4/9": 123122, "4/10": 123197, "4/11": 123272 },
     "ALB": { "2/0": 119858, "2/9": 123510, "2/10": 123585, "2/11": 123660, "3/0": 119938, "3/9": 123590, "3/10": 123665, "3/11": 123740, "4/0": 120018, "4/9": 123670, "4/10": 123745, "4/11": 123820 },
     "ALD": { "2/0": 118977, "2/9": 122629, "2/10": 122704, "2/11": 122779, "3/0": 119057, "3/9": 122709, "3/10": 122784, "3/11": 122859, "4/0": 119137, "4/9": 122789, "4/10": 122864, "4/11": 122939 },
-    
-    // BOEING FLEET (S2-AJ..., PK-BB...)
     "AJE": { "2/4": 43140, "2/5": 43215, "2/6": 43290, "3/4": 43220, "3/5": 43295, "3/6": 43370 },
     "AJF": { "2/4": 42871, "2/5": 42946, "2/6": 43021, "3/4": 42951, "3/5": 43026, "3/6": 43101 },
     "AJG": { "2/4": 42591, "2/5": 42666, "2/6": 42741, "3/4": 42671, "3/5": 42746, "3/6": 42821 },
     "AJH": { "2/4": 42574, "2/5": 42649, "2/6": 42724, "3/4": 42654, "3/5": 42729, "3/6": 42804 },
     "BBG": { "2/0": 42534, "2/4": 42914, "2/5": 43009, "3/0": 42629, "3/4": 43009, "3/5": 43104 },
     "BBH": { "2/0": 42534, "2/4": 42914, "2/5": 43009, "3/0": 42629, "3/4": 43009, "3/5": 43104 },
-
-    // ATR FLEET
     "ATR_GENERIC": { "2/2": 14015, "3/2": 14095, "2/0": 13865, "3/0": 13945 }
 };
 
-const MAX_ZFW = {
-    "AIRBUS": 173000,
-    "BOEING": 62731,
-    "ATR": 21000
-};
-
-const baggageOut = {
-  DXB: 18, SHJ: 19, AUH: 19, SIN: 18, CAN: 14, DOH: 18, JED: 19,
-  BKK: 12, MLE: 13, KUL: 16, RUH: 19, MAA: 12, MCT: 20
-};
-const baggageIn = {
-  MAA: 30, MLE: 35, BKK: 30, KUL: 35, SIN: 40, CAN: 40, DXB: 40, SHJ: 40,
-  AUH: 40, DOH: 40, JED: 45, RUH: 45, MCT: 38
-};
+const MAX_ZFW = { "AIRBUS": 173000, "BOEING": 62731, "ATR": 21000 };
+const baggageOut = { DXB: 18, SHJ: 19, AUH: 19, SIN: 18, CAN: 14, DOH: 18, JED: 19, BKK: 12, MLE: 13, KUL: 16, RUH: 19, MAA: 12, MCT: 20 };
+const baggageIn = { MAA: 30, MLE: 35, BKK: 30, KUL: 35, SIN: 40, CAN: 40, DXB: 40, SHJ: 40, AUH: 40, DOH: 40, JED: 45, RUH: 45, MCT: 38 };
 
 const ADULT_WEIGHT = 75;
 const CHILD_WEIGHT = 35;
@@ -41,24 +25,34 @@ const PMC_WEIGHT = 97;
 
 let tableData = []; 
 let loadControllerName = '';
+let currentMode = ''; 
 let editingRow = null;
 
-// --- INITIALIZATION ---
+// --- POPUP SYSTEM ---
+function showPopup(message) {
+    const popup = document.getElementById('customPopup');
+    const msg = document.getElementById('popupMessage');
+    msg.innerText = message;
+    popup.style.display = 'flex';
+    setTimeout(() => {
+        popup.style.display = 'none';
+    }, 2000);
+}
 
-window.onload = function() {
-    checkLogin();
-};
+// --- INITIALIZATION ---
+window.onload = function() { checkLogin(); };
 
 function checkLogin() {
     const savedName = localStorage.getItem('loadControllerName');
     if (savedName) {
         loadControllerName = savedName;
         document.getElementById('welcome').style.display = 'none';
-        document.getElementById('form-page').style.display = 'block';
-        document.getElementById('displayControllerName').textContent = loadControllerName;
+        document.getElementById('selection-page').style.display = 'flex';
+        document.getElementById('welcomeUser').innerText = loadControllerName;
         loadSavedData(); 
     } else {
         document.getElementById('welcome').style.display = 'flex';
+        document.getElementById('selection-page').style.display = 'none';
         document.getElementById('form-page').style.display = 'none';
     }
 }
@@ -75,29 +69,119 @@ function login() {
   const today = new Date().toISOString().split('T')[0];
   localStorage.setItem('flightDate', today);
   
-  checkLogin();
+  showPopup("WELCOME OFFICER");
+  setTimeout(checkLogin, 1500); 
+}
+
+function selectMode(mode) {
+    currentMode = mode;
+    document.getElementById('selection-page').style.display = 'none';
+    document.getElementById('form-page').style.display = 'block';
+    
+    document.getElementById('displayControllerName').textContent = loadControllerName;
+    document.getElementById('displayMode').textContent = `[${mode} MODE]`;
+    
+    setupInputsForMode();
+    renderTableFromData(); // Re-render table with correct columns
+}
+
+function goToDash() {
+    document.getElementById('form-page').style.display = 'none';
+    document.getElementById('selection-page').style.display = 'flex';
+    currentMode = '';
+    clearInputs();
 }
 
 function logout() {
-    if(confirm("ARE YOU SURE YOU WANT TO LOG OUT? ALL DATA WILL BE CLEARED.")) {
+    showPopup("BYE BYE OFFICER");
+    setTimeout(() => {
         localStorage.clear();
         location.reload();
-    }
+    }, 2000);
 }
 
-// --- FLIGHT ROUTE LOGIC ---
+// --- MODE SETUP ---
+function setupInputsForMode() {
+    const regContainer = document.getElementById('acRegContainer');
+    const crewContainer = document.getElementById('crewConfContainer');
+    const paxBreakdowns = document.querySelectorAll('.pax-breakdown');
+    const totalPaxInput = document.getElementById('totalPax');
+    
+    // Header Manipulations
+    const thAdt = document.getElementById('th-adt');
+    const thChd = document.getElementById('th-chd');
+    const thInf = document.getElementById('th-inf');
+    const thUld = document.getElementById('th-uld');
+    const thPmc = document.getElementById('th-pmc');
+
+    regContainer.innerHTML = '';
+    
+    if (currentMode === 'TRADITIONAL') {
+        // Simple Select for A/C
+        regContainer.innerHTML = `
+            <select id="acReg" onchange="handleRegInput(); this.className='has-value'">
+                <option value="" disabled selected>A/C REG</option>
+                <option value="ATR">ATR</option>
+                <option value="BOEING">BOEING</option>
+                <option value="AIRBUS">AIRBUS</option>
+            </select>
+        `;
+        crewContainer.style.display = 'none'; 
+        paxBreakdowns.forEach(el => el.style.display = 'none'); 
+        
+        // Total Pax Config
+        totalPaxInput.readOnly = false; 
+        totalPaxInput.style.backgroundColor = '#fff';
+        totalPaxInput.placeholder = "ENTER TOTAL PAX";
+        // Auto Calc on Pax Input
+        totalPaxInput.oninput = function() { updateTotalBaggageWeight(); calculateEZFW(); };
+
+        // Hide Columns
+        thAdt.textContent = "PAX";
+        thChd.style.display = 'none';
+        thInf.style.display = 'none';
+        thUld.style.display = 'none';
+        thPmc.style.display = 'none';
+        
+    } else {
+        // ACTUAL MODE
+        regContainer.innerHTML = `
+          <input list="acRegList" type="text" id="acReg" placeholder="A/C REG (e.g. AJE)" oninput="handleRegInput()" onchange="this.className='has-value'">
+          <datalist id="acRegList">
+            <option value="S2-ALA"><option value="S2-ALB"><option value="S2-ALD">
+            <option value="S2-AJE"><option value="S2-AJF"><option value="S2-AJG"><option value="S2-AJH">
+            <option value="PK-BBG"><option value="PK-BBH">
+            <option value="S2-AKA"><option value="S2-AKB"><option value="S2-AKC"><option value="S2-AKD"><option value="S2-AKE">
+          </datalist>
+        `;
+        crewContainer.style.display = 'flex';
+        paxBreakdowns.forEach(el => el.style.display = 'flex');
+        
+        totalPaxInput.readOnly = true;
+        totalPaxInput.style.backgroundColor = '#e0e0e0';
+        totalPaxInput.oninput = null; // Reset handler
+
+        // Show Columns
+        thAdt.textContent = "ADT";
+        thChd.style.display = '';
+        thInf.style.display = '';
+        thUld.style.display = '';
+        thPmc.style.display = '';
+    }
+    
+    toggleAirbusInputs();
+}
+
+// --- LOGIC ---
+
 function handleFlightNoInput() {
     const flt = document.getElementById('fltNo').value;
     if(!flt) return;
-    
     const fltNum = parseInt(flt);
-    let org = "";
-    let des = "";
+    let org = "", des = "";
 
-    // Specific mapping
     if (fltNum === 341) { org = "DAC"; des = "DXB"; }
     else if (fltNum === 342) { org = "DXB"; des = "DAC"; }
-    else if (fltNum === 344) { org = "DXB"; des = "DAC"; }
     else if (fltNum >= 141 && fltNum <= 159 && fltNum % 2 !== 0) { org = "DAC"; des = "CXB"; }
     else if (fltNum >= 142 && fltNum <= 160 && fltNum % 2 === 0) { org = "CXB"; des = "DAC"; }
     else if ([201, 203].includes(fltNum)) { org = "DAC"; des = "CCU"; }
@@ -126,7 +210,7 @@ function handleFlightNoInput() {
     else if ([362, 364].includes(fltNum)) { org = "JED"; des = "DAC"; }
     else if ([381, 383].includes(fltNum)) { org = "DAC"; des = "RUH"; }
     else if ([382, 384].includes(fltNum)) { org = "RUH"; des = "DAC"; }
-
+    
     if (org && des) {
         document.getElementById('from').value = org;
         document.getElementById('destination').value = des;
@@ -136,33 +220,31 @@ function handleFlightNoInput() {
     }
 }
 
-// --- AIRCRAFT REG HANDLING ---
 function handleRegInput() {
+    if (currentMode === 'TRADITIONAL') {
+        const val = document.getElementById('acReg').value;
+        toggleAirbusInputs(val); 
+        calculateEZFW();
+        return;
+    }
+
+    // Actual Mode Logic
     let inputRaw = document.getElementById('acReg').value.toUpperCase();
     document.getElementById('acReg').value = inputRaw;
     
-    // Extract key if user selected from dropdown (e.g. "S2-ALA" -> "ALA")
-    // Or if user just typed "ALA" keep "ALA"
     let key = inputRaw;
-    if(inputRaw.includes("-")) {
-        key = inputRaw.split("-")[1];
-    } else if(inputRaw.startsWith("AK") && inputRaw.length === 2) {
-        // Just keeping generic if typed partially, but main logic uses full code
-    }
+    if(inputRaw.includes("-")) key = inputRaw.split("-")[1];
+    else if(inputRaw.startsWith("AK") && inputRaw.length === 2) {} 
 
     const crewConfList = document.getElementById('crewConfList');
-    crewConfList.innerHTML = ''; // Clear options
+    crewConfList.innerHTML = ''; 
     
-    // Determine options
     let options = [];
     if (["ALA", "ALB", "ALD"].includes(key)) {
         options = ["2/0", "2/9", "2/10", "2/11", "3/0", "3/9", "3/10", "3/11", "4/0", "4/9", "4/10", "4/11"];
     } else if (["AJE", "AJF", "AJG", "AJH", "BBG", "BBH"].includes(key)) {
-        if(key.startsWith("BB")) {
-            options = ["2/0", "2/4", "2/5", "3/0", "3/4", "3/5"];
-        } else {
-            options = ["2/4", "2/5", "2/6", "3/4", "3/5", "3/6"];
-        }
+        if(key.startsWith("BB")) options = ["2/0", "2/4", "2/5", "3/0", "3/4", "3/5"];
+        else options = ["2/4", "2/5", "2/6", "3/4", "3/5", "3/6"];
     } else if (key.startsWith("AK")) {
         options = ["2/2", "3/2", "2/0", "3/0"];
     }
@@ -176,77 +258,84 @@ function handleRegInput() {
     toggleAirbusInputs(key);
 }
 
-function getFormattedReg(input) {
-    if (input.includes("-")) return input; // Already formatted
-    if (["BBG", "BBH"].includes(input)) return "PK-" + input;
-    if (input.length === 3) return "S2-" + input;
-    return input;
-}
-
-function getAircraftType(regKey) {
-    if (["ALA", "ALB", "ALD"].includes(regKey)) return "AIRBUS";
-    if (regKey.startsWith("AK")) return "ATR";
+function getAircraftType(input) {
+    if (currentMode === 'TRADITIONAL') return input; 
+    if (["ALA", "ALB", "ALD"].includes(input)) return "AIRBUS";
+    if (input.startsWith("AK")) return "ATR";
     return "BOEING"; 
 }
 
 function toggleAirbusInputs(regKey) {
-    const type = getAircraftType(regKey);
+    const reg = regKey || document.getElementById('acReg').value;
+    let type = "";
+    
+    if (currentMode === 'TRADITIONAL') {
+        type = reg; 
+    } else {
+        type = getAircraftType(reg);
+    }
+    
     const airbusFields = document.querySelectorAll('.airbus-field');
     
-    if (type === 'AIRBUS') {
+    // Show ULD/PMC only in Actual Mode + Airbus
+    if (currentMode === 'ACTUAL' && type === 'AIRBUS') {
         airbusFields.forEach(field => field.style.display = 'flex');
     } else {
-        airbusFields.forEach(field => {
-            field.style.display = 'none';
-        });
+        airbusFields.forEach(field => field.style.display = 'none');
         document.getElementById('uld').value = '';
         document.getElementById('pmc').value = '';
     }
 }
 
-// --- CALCULATIONS ---
-
 function calculateEZFW() {
-    let inputRaw = document.getElementById('acReg').value.toUpperCase();
-    let key = inputRaw;
-    if(inputRaw.includes("-")) {
-        key = inputRaw.split("-")[1];
-    }
-
-    const crewConf = document.getElementById('crewConf').value;
-    
     let dow = 0;
-    if (key.startsWith("AK")) {
-         dow = AIRCRAFT_DATABASE["ATR_GENERIC"][crewConf] || 0;
-    } else if (AIRCRAFT_DATABASE[key]) {
-         dow = AIRCRAFT_DATABASE[key][crewConf] || 0;
-    }
-
-    const adult = parseInt(document.getElementById('adult').value) || 0;
-    const child = parseInt(document.getElementById('child').value) || 0;
-    const infant = parseInt(document.getElementById('infant').value) || 0;
-    
-    const totalBagWeight = parseFloat(document.getElementById('bag').value) || 0;
-    const cgo = parseFloat(document.getElementById('cgo').value) || 0;
-    
-    const uldCount = parseFloat(document.getElementById('uld').value) || 0;
-    const pmcCount = parseFloat(document.getElementById('pmc').value) || 0;
-
-    const type = getAircraftType(key);
-
-    const totalPassengerWeight = (adult * ADULT_WEIGHT) + (child * CHILD_WEIGHT) + (infant * INFANT_WEIGHT);
-    
+    let totalPassengerWeight = 0;
     let extraWeight = 0;
-    if(type === 'AIRBUS') {
-        extraWeight = (uldCount * ULD_WEIGHT) + (pmcCount * PMC_WEIGHT);
+    
+    const totalBag = parseFloat(document.getElementById('bag').value) || 0;
+    const cgo = parseFloat(document.getElementById('cgo').value) || 0;
+
+    if (currentMode === 'TRADITIONAL') {
+        const type = document.getElementById('acReg').value;
+        const totalPax = parseInt(document.getElementById('totalPax').value) || 0;
+        
+        if(type === 'ATR') dow = 14015;
+        else if(type === 'BOEING') dow = 43000;
+        else if(type === 'AIRBUS') dow = 123500;
+        
+        totalPassengerWeight = totalPax * 75;
+        
+    } else {
+        // ACTUAL MODE
+        let inputRaw = document.getElementById('acReg').value.toUpperCase();
+        let key = inputRaw;
+        if(inputRaw.includes("-")) key = inputRaw.split("-")[1];
+
+        const crewConf = document.getElementById('crewConf').value;
+        
+        if (key.startsWith("AK")) dow = AIRCRAFT_DATABASE["ATR_GENERIC"][crewConf] || 0;
+        else if (AIRCRAFT_DATABASE[key]) dow = AIRCRAFT_DATABASE[key][crewConf] || 0;
+
+        const adult = parseInt(document.getElementById('adult').value) || 0;
+        const child = parseInt(document.getElementById('child').value) || 0;
+        const infant = parseInt(document.getElementById('infant').value) || 0;
+        const uldCount = parseFloat(document.getElementById('uld').value) || 0;
+        const pmcCount = parseFloat(document.getElementById('pmc').value) || 0;
+
+        const type = getAircraftType(key);
+        totalPassengerWeight = (adult * ADULT_WEIGHT) + (child * CHILD_WEIGHT) + (infant * INFANT_WEIGHT);
+        
+        if(type === 'AIRBUS') {
+            extraWeight = (uldCount * ULD_WEIGHT) + (pmcCount * PMC_WEIGHT);
+        }
     }
 
-    const ezfw = totalPassengerWeight + totalBagWeight + cgo + extraWeight + dow;
+    const ezfw = totalPassengerWeight + totalBag + cgo + extraWeight + dow;
     document.getElementById('ezfw').value = ezfw > 0 ? ezfw.toFixed(0) : "";
-    return ezfw;
 }
 
 function updatePaxAndCalc() {
+    if(currentMode === 'TRADITIONAL') return; 
     const adult = parseInt(document.getElementById('adult').value) || 0;
     const child = parseInt(document.getElementById('child').value) || 0;
     const infant = parseInt(document.getElementById('infant').value) || 0;
@@ -258,9 +347,16 @@ function updatePaxAndCalc() {
 function updateTotalBaggageWeight() {
   const from = document.getElementById('from').value;
   const dest = document.getElementById('destination').value;
-  const adult = parseInt(document.getElementById('adult').value) || 0;
-  const child = parseInt(document.getElementById('child').value) || 0;
-  const bagPayingPax = adult + child; 
+  
+  let bagPayingPax = 0;
+  if(currentMode === 'TRADITIONAL') {
+      bagPayingPax = parseInt(document.getElementById('totalPax').value) || 0;
+  } else {
+      const adult = parseInt(document.getElementById('adult').value) || 0;
+      const child = parseInt(document.getElementById('child').value) || 0;
+      bagPayingPax = adult + child; 
+  }
+
   const bagInput = document.getElementById('bag');
   let perPaxBagWeight = 0;
 
@@ -275,44 +371,45 @@ function updateTotalBaggageWeight() {
   bagInput.value = (bagPayingPax * perPaxBagWeight).toFixed(0);
 }
 
-// --- TABLE MANAGEMENT ---
-
 function addRow() {
-  const dateValue = document.getElementById('flightDate').value;
-  const sessionValue = document.getElementById('time').value;
-
-  if (!dateValue || !sessionValue) {
-      alert('PLEASE SELECT A SESSION AND DATE BEFORE ADDING A FLIGHT.');
-      return;
-  }
-
-  const currentEZFW = calculateEZFW();
-  const inputRaw = document.getElementById('acReg').value.toUpperCase();
+  const regInput = document.getElementById('acReg').value;
   const fltNoInput = document.getElementById('fltNo').value;
-  const crewConf = document.getElementById('crewConf').value;
-
-  if(!inputRaw || !fltNoInput || !crewConf) {
-     alert('PLEASE FILL REGISTRATION, CREW CONFIG AND FLIGHT NUMBER');
+  
+  if(!regInput || !fltNoInput) {
+     alert('PLEASE FILL AIRCRAFT AND FLIGHT NUMBER');
      return;
   }
 
-  let key = inputRaw;
-  if(inputRaw.includes("-")) key = inputRaw.split("-")[1];
-
-  const type = getAircraftType(key);
-  const maxZfw = MAX_ZFW[type];
+  const currentEZFW = document.getElementById('ezfw').value;
+  let type = "";
+  if(currentMode === 'TRADITIONAL') {
+      type = regInput; 
+  } else {
+      let key = regInput;
+      if(regInput.includes("-")) key = regInput.split("-")[1];
+      type = getAircraftType(key);
+  }
   
+  const maxZfw = MAX_ZFW[type];
   let statusText = "WITHIN LIMIT";
   let isLimitCrossed = false;
-  if (currentEZFW > maxZfw) {
+  if (parseFloat(currentEZFW) > maxZfw) {
       isLimitCrossed = true;
       statusText = "LIMIT CROSSED";
   }
 
+  let displayReg = regInput;
+  if (currentMode === 'ACTUAL') {
+      let key = regInput;
+      if(regInput.includes("-")) key = regInput.split("-")[1];
+      if(["BBG","BBH"].includes(key)) displayReg = "PK-" + key;
+      else if(key.length === 3) displayReg = "S2-" + key;
+  }
+
   const rowObject = {
-    reg: getFormattedReg(key),
-    regCode: inputRaw, // Store exactly what user typed/selected
-    crewConf: crewConf,
+    reg: displayReg,
+    regCode: regInput, 
+    crewConf: document.getElementById('crewConf').value,
     fltNo: 'BS-' + fltNoInput,
     origin: document.getElementById('from').value || '',
     dest: document.getElementById('destination').value || '',
@@ -321,11 +418,13 @@ function addRow() {
     infant: document.getElementById('infant').value || 0,
     bag: document.getElementById('bag').value || 0,
     cgo: document.getElementById('cgo').value || 0,
-    uld: (type === 'AIRBUS') ? (document.getElementById('uld').value || 0) : '-',
-    pmc: (type === 'AIRBUS') ? (document.getElementById('pmc').value || 0) : '-',
-    ezfw: document.getElementById('ezfw').value,
+    uld: document.getElementById('uld').value || '-',
+    pmc: document.getElementById('pmc').value || '-',
+    ezfw: currentEZFW,
     status: statusText,
-    isLimitCrossed: isLimitCrossed
+    isLimitCrossed: isLimitCrossed,
+    mode: currentMode,
+    totalPax: document.getElementById('totalPax').value 
   };
 
   if (editingRow) {
@@ -355,7 +454,6 @@ function renderTableFromData() {
 
     tableData.forEach((row, index) => {
         const tr = tbody.insertRow();
-        
         const editCell = tr.insertCell();
         const editBtn = document.createElement('button');
         editBtn.textContent = 'EDIT';
@@ -367,13 +465,38 @@ function renderTableFromData() {
         tr.insertCell().textContent = row.fltNo;
         tr.insertCell().textContent = row.origin;
         tr.insertCell().textContent = row.dest;
-        tr.insertCell().textContent = row.adult;
-        tr.insertCell().textContent = row.child;
-        tr.insertCell().textContent = row.infant;
+        
+        // Handle Pax Columns
+        if (currentMode === 'TRADITIONAL') {
+            tr.insertCell().textContent = row.totalPax; 
+            // Skip other columns handled by header visibility, but we need to insert placeholder if mixed mode? 
+            // No, table headers are static in number but hidden via CSS. 
+            // WAIT: insertCell inserts into the row structure. 
+            // If we hide the TH, we must NOT insert the TD or insert hidden TD. 
+            // Better strategy: Only insert data for visible columns.
+            // Since User can't mix modes easily in display, we assume all rows match current view.
+            // BUT previous rows might be different mode.
+            // Requirement says "Traditional page is fine".
+            // So we only render data relevant to current view? 
+            // Actually, if we have mixed data, it breaks. But assuming single session mode.
+            
+            // To be safe, we insert dummy cells if column is hidden, OR don't insert. 
+            // If TH is display:none, TD should be too or not exist? 
+            // If I don't insert TD, column alignment breaks if TH exists but hidden? No.
+            // Best: Don't insert TD for hidden TH.
+        } else {
+            tr.insertCell().textContent = row.adult;
+            tr.insertCell().textContent = row.child;
+            tr.insertCell().textContent = row.infant;
+        }
+
         tr.insertCell().textContent = row.bag;
         tr.insertCell().textContent = row.cgo;
-        tr.insertCell().textContent = row.uld;
-        tr.insertCell().textContent = row.pmc;
+        
+        if (currentMode === 'ACTUAL') {
+            tr.insertCell().textContent = row.uld;
+            tr.insertCell().textContent = row.pmc;
+        }
 
         const ezfwCell = tr.insertCell();
         ezfwCell.textContent = row.ezfw;
@@ -397,35 +520,34 @@ function renderTableFromData() {
 
 function editRow(index) {
   const data = tableData[index];
+  if(data.mode !== currentMode) selectMode(data.mode);
+
   const tr = document.querySelector('#resultTable tbody').rows[index];
   editingRow = tr;
 
   document.getElementById('acReg').value = data.regCode;
-  handleRegInput(); // Populate Dropdown
+  if(currentMode === 'ACTUAL') handleRegInput();
+  
   document.getElementById('crewConf').value = data.crewConf;
-
   document.getElementById('fltNo').value = data.fltNo.replace('BS-', '');
   document.getElementById('from').value = data.origin;
   document.getElementById('destination').value = data.dest;
   
-  document.getElementById('adult').value = data.adult;
-  document.getElementById('child').value = data.child;
-  document.getElementById('infant').value = data.infant;
-  updatePaxAndCalc(); 
+  if(currentMode === 'ACTUAL') {
+      document.getElementById('adult').value = data.adult;
+      document.getElementById('child').value = data.child;
+      document.getElementById('infant').value = data.infant;
+      updatePaxAndCalc();
+      document.getElementById('uld').value = data.uld === '-' ? '' : data.uld;
+      document.getElementById('pmc').value = data.pmc === '-' ? '' : data.pmc;
+  } else {
+      document.getElementById('totalPax').value = data.totalPax;
+      updateTotalBaggageWeight(); // Trigger calc for traditional
+      calculateEZFW();
+  }
 
   document.getElementById('bag').value = data.bag;
   document.getElementById('cgo').value = data.cgo;
-
-  // Key extraction for type check
-  let key = data.regCode;
-  if(key.includes("-")) key = key.split("-")[1];
-  const type = getAircraftType(key);
-
-  if (type === 'AIRBUS') {
-      document.getElementById('uld').value = data.uld;
-      document.getElementById('pmc').value = data.pmc;
-  }
-
   document.getElementById('ezfw').value = data.ezfw;
   document.getElementById('addBtn').textContent = 'UPDATE';
 }
@@ -448,8 +570,6 @@ function clearInputs() {
     document.getElementById('uld').value = '';
     document.getElementById('pmc').value = '';
     document.getElementById('ezfw').value = '';
-    
-    // DO NOT CLEAR A/C REG OR CREW CONF (As per request)
     
     const fromSelect = document.getElementById('from');
     fromSelect.selectedIndex = 0;
@@ -479,7 +599,7 @@ function loadSavedData() {
     const savedTable = localStorage.getItem('tableData');
     if(savedTable) {
         tableData = JSON.parse(savedTable);
-        renderTableFromData();
+        // We render after mode selection
     }
 }
 
@@ -497,14 +617,14 @@ function newReport() {
         saveDataLocally();
         renderTableFromData();
         
-        // Clear Reg and Crew only on New Report
         document.getElementById('acReg').value = '';
         document.getElementById('crewConf').value = '';
+        if(currentMode === 'ACTUAL') {
+             document.getElementById('crewConf').innerHTML = ''; 
+        }
         clearInputs();
     }
 }
-
-// --- REPORT GENERATION ---
 
 function getReportHeaderHTML() {
     const session = document.getElementById('time').value || "SESSION";
@@ -535,6 +655,7 @@ function getCleanTableClone() {
     const originalTable = document.getElementById('resultTable');
     const tableClone = originalTable.cloneNode(true);
     
+    // Remove Action (Last) and Edit (First)
     tableClone.rows[0].deleteCell(-1); 
     tableClone.rows[0].deleteCell(0);
 

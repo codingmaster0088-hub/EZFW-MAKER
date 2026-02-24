@@ -11,7 +11,14 @@
 </head>
 <body>
 
-  <!-- Login Screen -->
+  <!-- Custom Popup Notification -->
+  <div id="customPopup" class="popup-overlay" style="display: none;">
+    <div class="popup-content">
+        <h2 id="popupMessage"></h2>
+    </div>
+  </div>
+
+  <!-- PAGE 1: Login Screen -->
   <div class="center-box" id="welcome">
     <div class="welcome-content">
       <h1>WELCOME LOAD MASTER</h1>
@@ -24,15 +31,33 @@
     </div>
   </div>
 
-  <!-- Main App Screen -->
+  <!-- PAGE 2: Selection Screen (Dashboard) -->
+  <div class="center-box" id="selection-page" style="display: none;">
+    <div class="dashboard-header" style="position: absolute; top: 20px; right: 20px;">
+        <button onclick="logout()" class="logout-btn">LOG OUT</button>
+    </div>
+    <div class="welcome-content">
+      <h1 class="dynamic-welcome">WELCOME <br><span id="welcomeUser" style="color: #00bcd4;"></span></h1>
+      <h3 style="margin-top: 20px;">CREATE EZFW WITH..</h3>
+      <div class="selection-buttons">
+        <button onclick="selectMode('TRADITIONAL')" class="mode-btn btn-traditional">TRADITIONAL</button>
+        <button onclick="selectMode('ACTUAL')" class="mode-btn btn-actual">ACTUAL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3: Main App Screen -->
   <div class="form-container" id="form-page">
     
-    <!-- Header with Logout -->
     <div class="app-header">
        <div class="user-info">
          <span>OFFICER: <b id="displayControllerName"></b></span>
+         <span id="displayMode" style="font-size: 0.8em; color: #aaa; margin-left: 10px;"></span>
        </div>
-       <button onclick="logout()" class="logout-btn">LOG OUT</button>
+       <div class="header-buttons">
+           <button onclick="goToDash()" class="dash-btn">DASH</button>
+           <button onclick="logout()" class="logout-btn">LOG OUT</button>
+       </div>
     </div>
 
     <div class="grid top-grid">
@@ -43,36 +68,15 @@
       </select>
       <input type="date" id="flightDate" onchange="saveDataLocally()">
       
-      <!-- UPDATED: A/C REG (Input + Datalist for Dropdown & Manual) -->
-      <div class="input-group-row">
-          <input list="acRegList" type="text" id="acReg" placeholder="A/C REG (e.g. AJE)" oninput="handleRegInput()" onchange="this.className='has-value'">
-          <datalist id="acRegList">
-            <!-- Airbus -->
-            <option value="S2-ALA">
-            <option value="S2-ALB">
-            <option value="S2-ALD">
-            <!-- Boeing -->
-            <option value="S2-AJE">
-            <option value="S2-AJF">
-            <option value="S2-AJG">
-            <option value="S2-AJH">
-            <option value="PK-BBG">
-            <option value="PK-BBH">
-            <!-- ATRs -->
-            <option value="S2-AKA">
-            <option value="S2-AKB">
-            <option value="S2-AKC">
-            <option value="S2-AKD">
-            <option value="S2-AKE">
-          </datalist>
+      <!-- A/C REG Container -->
+      <div class="input-group-row" id="acRegContainer">
+          <!-- Injected by JS -->
       </div>
       
-      <!-- UPDATED: CREW CONF (Input + Datalist) -->
-      <div class="input-group-row">
+      <!-- CREW CONF -->
+      <div class="input-group-row" id="crewConfContainer">
           <input list="crewConfList" type="text" id="crewConf" placeholder="CREW CONF" oninput="calculateEZFW()" onchange="this.className='has-value'">
-          <datalist id="crewConfList">
-              <!-- Populated by JS -->
-          </datalist>
+          <datalist id="crewConfList"></datalist>
       </div>
 
       <div class="input-with-prefix">
@@ -98,18 +102,21 @@
     </div>
 
     <div class="grid mid-grid">
-      <div class="input-group">
+      <!-- Pax Breakdown -->
+      <div class="input-group pax-breakdown">
         <label for="adult">ADULT</label>
         <input type="number" id="adult" placeholder="0" oninput="updatePaxAndCalc()">
       </div>
-      <div class="input-group">
+      <div class="input-group pax-breakdown">
         <label for="child">CHILD</label>
         <input type="number" id="child" placeholder="0" oninput="updatePaxAndCalc()">
       </div>
-      <div class="input-group">
+      <div class="input-group pax-breakdown">
         <label for="infant">INFANT</label>
         <input type="number" id="infant" placeholder="0" oninput="updatePaxAndCalc()">
       </div>
+
+      <!-- Total Pax -->
       <div class="input-group">
         <label for="totalPax">TOTAL PAX</label>
         <input type="number" id="totalPax" readonly style="background-color: #e0e0e0; font-weight: bold;">
@@ -159,13 +166,13 @@
             <th>FLT NO</th>
             <th>ORG</th>
             <th>DES</th>
-            <th>ADT</th>
-            <th>CHD</th>
-            <th>INF</th>
+            <th id="th-adt">ADT</th> <!-- ID Added -->
+            <th id="th-chd">CHD</th> <!-- ID Added -->
+            <th id="th-inf">INF</th> <!-- ID Added -->
             <th>BAG</th>
             <th>CGO</th>
-            <th class="airbus-col">ULD</th>
-            <th class="airbus-col">PMC</th>
+            <th id="th-uld" class="airbus-col">ULD</th> <!-- ID Added -->
+            <th id="th-pmc" class="airbus-col">PMC</th> <!-- ID Added -->
             <th>EZFW</th>
             <th>STATUS</th>
             <th>ACTION</th>

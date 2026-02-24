@@ -8,7 +8,7 @@ body {
   min-height: 100vh;
 }
 
-/* --- Welcome Screen --- */
+/* --- Welcome & Selection Screen --- */
 .center-box {
   display: flex;
   flex-direction: column;
@@ -32,6 +32,77 @@ body {
     gap: 15px;
 }
 
+.dynamic-welcome {
+    font-size: 2.5em;
+    font-weight: bold;
+    line-height: 1.3;
+}
+
+.selection-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 30px;
+    align-items: center;
+}
+
+.mode-btn {
+    width: 100%;
+    max-width: 300px;
+    padding: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-traditional { background-color: #FF9800; color: white; }
+.btn-actual { background-color: #4CAF50; color: white; }
+
+.mode-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255,255,255,0.3);
+}
+
+/* --- POPUP STYLES --- */
+.popup-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.popup-content {
+    background: #fff;
+    color: #333;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0,255,255,0.5);
+    animation: popIn 0.5s ease;
+}
+
+.popup-content h2 {
+    margin: 0;
+    font-size: 2em;
+    text-transform: uppercase;
+    font-weight: bold;
+    background: -webkit-linear-gradient(#00bcd4, #203a43);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
 h1 { font-size: 2.5em; font-weight: bold; margin-bottom: 0.2em; line-height: 1.2; }
 h3 { font-weight: 300; margin-bottom: 1.5em; font-size: 1.1em; letter-spacing: 1px; }
 
@@ -52,18 +123,13 @@ button {
 button:hover { background-color: #0288a7; }
 button:active { transform: scale(0.98); }
 
-.login-btn {
-    width: 100%;
-    max-width: 300px;
-    background-color: #00bcd4;
-}
+.login-btn { width: 100%; max-width: 300px; background-color: #00bcd4; }
 
-.logout-btn {
-    background-color: #f44336;
-    padding: 8px 15px;
-    font-size: 0.9em;
-}
+.logout-btn { background-color: #f44336; padding: 8px 15px; font-size: 0.9em; }
 .logout-btn:hover { background-color: #d32f2f; }
+
+.dash-btn { background-color: #2196F3; padding: 8px 15px; font-size: 0.9em; margin-right: 10px; }
+.dash-btn:hover { background-color: #1976D2; }
 
 #controllerName {
     background-color: #fff;
@@ -199,7 +265,6 @@ th {
   font-weight: bold;
 }
 
-/* --- Status & Action Buttons --- */
 .status-ok { color: #4CAF50; font-weight: bold; }
 .status-bad { color: #f44336; font-weight: bold; }
 
@@ -218,7 +283,6 @@ th {
 #newReportBtn { background-color: #f44336; }
 #newReportBtn:hover { background-color: #d32f2f; }
 
-/* Responsive */
 @media screen and (max-width: 768px) {
   h1 { font-size: 1.8em; }
   .form-container { padding: 10px; }
@@ -235,7 +299,6 @@ th {
   h3 { font-size: 0.9em; }
 }
 
-/* Focus Effect */
 input:focus, select:focus {
     background-color: #ffe6e6 !important;
     border: 2px solid #ff5252 !important;
