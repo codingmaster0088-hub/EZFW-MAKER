@@ -60,14 +60,22 @@
        </div>
     </div>
 
+    <!-- FLST Input Box -->
+    <div class="flst-container" style="margin-bottom: 15px;">
+        <textarea id="flstInput" rows="3" placeholder="PASTE FLST DATA HERE..."></textarea>
+    </div>
+
     <div class="grid top-grid">
       <select id="time" onchange="saveDataLocally(); this.className='has-value'">
         <option value="" disabled selected>SESSION</option>
         <option value="MORNING">MORNING</option>
         <option value="EVENING">EVENING</option>
       </select>
+      
       <input type="date" id="flightDate" onchange="saveDataLocally()">
       
+      <button onclick="generateFromFLST()" class="add-btn" style="background-color: #4CAF50; height: 45px; margin: 0;">GENERATE</button>
+
       <!-- A/C REG Container -->
       <div class="input-group-row" id="acRegContainer">
           <!-- Injected by JS -->
@@ -102,7 +110,6 @@
     </div>
 
     <div class="grid mid-grid">
-      <!-- Pax Breakdown -->
       <div class="input-group pax-breakdown">
         <label for="adult">ADULT</label>
         <input type="number" id="adult" placeholder="0" oninput="updatePaxAndCalc()">
@@ -116,7 +123,6 @@
         <input type="number" id="infant" placeholder="0" oninput="updatePaxAndCalc()">
       </div>
 
-      <!-- Total Pax -->
       <div class="input-group">
         <label for="totalPax">TOTAL PAX</label>
         <input type="number" id="totalPax" readonly style="background-color: #e0e0e0; font-weight: bold;">
@@ -131,7 +137,6 @@
         <input type="number" id="cgo" oninput="calculateEZFW()">
       </div>
 
-      <!-- Airbus Specific Inputs -->
       <div class="input-group airbus-field" style="display: none;">
         <label for="uld">ULD (x68)</label>
         <input type="number" id="uld" placeholder="0" oninput="calculateEZFW()">
@@ -166,13 +171,13 @@
             <th>FLT NO</th>
             <th>ORG</th>
             <th>DES</th>
-            <th id="th-adt">ADT</th> <!-- ID Added -->
-            <th id="th-chd">CHD</th> <!-- ID Added -->
-            <th id="th-inf">INF</th> <!-- ID Added -->
+            <th id="th-adt">ADT</th> 
+            <th id="th-chd">CHD</th> 
+            <th id="th-inf">INF</th> 
             <th>BAG</th>
             <th>CGO</th>
-            <th id="th-uld" class="airbus-col">ULD</th> <!-- ID Added -->
-            <th id="th-pmc" class="airbus-col">PMC</th> <!-- ID Added -->
+            <th id="th-uld" class="airbus-col">ULD</th> 
+            <th id="th-pmc" class="airbus-col">PMC</th> 
             <th>EZFW</th>
             <th>STATUS</th>
             <th>ACTION</th>
@@ -183,7 +188,6 @@
     </div>
   </div>
 
-  <!-- Link to External JavaScript -->
   <script src="script.js"></script>
 </body>
 </html>

@@ -23,23 +23,19 @@ const INFANT_WEIGHT = 10;
 const ULD_WEIGHT = 68;
 const PMC_WEIGHT = 97;
 
-let tableData = []; 
+let tableData =[]; 
 let loadControllerName = '';
 let currentMode = ''; 
 let editingRow = null;
 
-// --- POPUP SYSTEM ---
 function showPopup(message) {
     const popup = document.getElementById('customPopup');
     const msg = document.getElementById('popupMessage');
     msg.innerText = message;
     popup.style.display = 'flex';
-    setTimeout(() => {
-        popup.style.display = 'none';
-    }, 2000);
+    setTimeout(() => { popup.style.display = 'none'; }, 2000);
 }
 
-// --- INITIALIZATION ---
 window.onload = function() { checkLogin(); };
 
 function checkLogin() {
@@ -82,7 +78,7 @@ function selectMode(mode) {
     document.getElementById('displayMode').textContent = `[${mode} MODE]`;
     
     setupInputsForMode();
-    renderTableFromData(); // Re-render table with correct columns
+    renderTableFromData(); 
 }
 
 function goToDash() {
@@ -100,14 +96,12 @@ function logout() {
     }, 2000);
 }
 
-// --- MODE SETUP ---
 function setupInputsForMode() {
     const regContainer = document.getElementById('acRegContainer');
     const crewContainer = document.getElementById('crewConfContainer');
     const paxBreakdowns = document.querySelectorAll('.pax-breakdown');
     const totalPaxInput = document.getElementById('totalPax');
     
-    // Header Manipulations
     const thAdt = document.getElementById('th-adt');
     const thChd = document.getElementById('th-chd');
     const thInf = document.getElementById('th-inf');
@@ -117,7 +111,6 @@ function setupInputsForMode() {
     regContainer.innerHTML = '';
     
     if (currentMode === 'TRADITIONAL') {
-        // Simple Select for A/C
         regContainer.innerHTML = `
             <select id="acReg" onchange="handleRegInput(); this.className='has-value'">
                 <option value="" disabled selected>A/C REG</option>
@@ -129,14 +122,11 @@ function setupInputsForMode() {
         crewContainer.style.display = 'none'; 
         paxBreakdowns.forEach(el => el.style.display = 'none'); 
         
-        // Total Pax Config
         totalPaxInput.readOnly = false; 
         totalPaxInput.style.backgroundColor = '#fff';
         totalPaxInput.placeholder = "ENTER TOTAL PAX";
-        // Auto Calc on Pax Input
         totalPaxInput.oninput = function() { updateTotalBaggageWeight(); calculateEZFW(); };
 
-        // Hide Columns
         thAdt.textContent = "PAX";
         thChd.style.display = 'none';
         thInf.style.display = 'none';
@@ -144,7 +134,6 @@ function setupInputsForMode() {
         thPmc.style.display = 'none';
         
     } else {
-        // ACTUAL MODE
         regContainer.innerHTML = `
           <input list="acRegList" type="text" id="acReg" placeholder="A/C REG (e.g. AJE)" oninput="handleRegInput()" onchange="this.className='has-value'">
           <datalist id="acRegList">
@@ -159,20 +148,16 @@ function setupInputsForMode() {
         
         totalPaxInput.readOnly = true;
         totalPaxInput.style.backgroundColor = '#e0e0e0';
-        totalPaxInput.oninput = null; // Reset handler
+        totalPaxInput.oninput = null; 
 
-        // Show Columns
         thAdt.textContent = "ADT";
         thChd.style.display = '';
         thInf.style.display = '';
         thUld.style.display = '';
         thPmc.style.display = '';
     }
-    
     toggleAirbusInputs();
 }
-
-// --- LOGIC ---
 
 function handleFlightNoInput() {
     const flt = document.getElementById('fltNo').value;
@@ -182,6 +167,7 @@ function handleFlightNoInput() {
 
     if (fltNum === 341) { org = "DAC"; des = "DXB"; }
     else if (fltNum === 342) { org = "DXB"; des = "DAC"; }
+    else if (fltNum === 344) { org = "DXB"; des = "DAC"; }
     else if (fltNum >= 141 && fltNum <= 159 && fltNum % 2 !== 0) { org = "DAC"; des = "CXB"; }
     else if (fltNum >= 142 && fltNum <= 160 && fltNum % 2 === 0) { org = "CXB"; des = "DAC"; }
     else if ([201, 203].includes(fltNum)) { org = "DAC"; des = "CCU"; }
@@ -224,29 +210,27 @@ function handleRegInput() {
     if (currentMode === 'TRADITIONAL') {
         const val = document.getElementById('acReg').value;
         toggleAirbusInputs(val); 
-        calculateEZFW();
+        calculateEZFW(); 
         return;
     }
 
-    // Actual Mode Logic
     let inputRaw = document.getElementById('acReg').value.toUpperCase();
     document.getElementById('acReg').value = inputRaw;
     
     let key = inputRaw;
     if(inputRaw.includes("-")) key = inputRaw.split("-")[1];
-    else if(inputRaw.startsWith("AK") && inputRaw.length === 2) {} 
 
     const crewConfList = document.getElementById('crewConfList');
     crewConfList.innerHTML = ''; 
     
     let options = [];
     if (["ALA", "ALB", "ALD"].includes(key)) {
-        options = ["2/0", "2/9", "2/10", "2/11", "3/0", "3/9", "3/10", "3/11", "4/0", "4/9", "4/10", "4/11"];
+        options =["2/0", "2/9", "2/10", "2/11", "3/0", "3/9", "3/10", "3/11", "4/0", "4/9", "4/10", "4/11"];
     } else if (["AJE", "AJF", "AJG", "AJH", "BBG", "BBH"].includes(key)) {
-        if(key.startsWith("BB")) options = ["2/0", "2/4", "2/5", "3/0", "3/4", "3/5"];
-        else options = ["2/4", "2/5", "2/6", "3/4", "3/5", "3/6"];
+        if(key.startsWith("BB")) options =["2/0", "2/4", "2/5", "3/0", "3/4", "3/5"];
+        else options =["2/4", "2/5", "2/6", "3/4", "3/5", "3/6"];
     } else if (key.startsWith("AK")) {
-        options = ["2/2", "3/2", "2/0", "3/0"];
+        options =["2/2", "3/2", "2/0", "3/0"];
     }
 
     options.forEach(opt => {
@@ -256,28 +240,32 @@ function handleRegInput() {
     });
 
     toggleAirbusInputs(key);
+    calculateEZFW(); 
 }
 
 function getAircraftType(input) {
-    if (currentMode === 'TRADITIONAL') return input; 
-    if (["ALA", "ALB", "ALD"].includes(input)) return "AIRBUS";
-    if (input.startsWith("AK")) return "ATR";
+    if (!input) return "BOEING";
+    input = input.toUpperCase();
+    
+    if (currentMode === 'TRADITIONAL') {
+        if (input === 'ATR' || input === 'BOEING' || input === 'AIRBUS') return input;
+    }
+    
+    let key = input;
+    if (input.includes("-")) key = input.split("-")[1];
+    
+    if (key.startsWith("AL")) return "AIRBUS";
+    if (key.startsWith("AK")) return "ATR";
+    if (key.startsWith("AJ") || key.startsWith("BB")) return "BOEING";
+    
     return "BOEING"; 
 }
 
 function toggleAirbusInputs(regKey) {
     const reg = regKey || document.getElementById('acReg').value;
-    let type = "";
-    
-    if (currentMode === 'TRADITIONAL') {
-        type = reg; 
-    } else {
-        type = getAircraftType(reg);
-    }
-    
+    const type = getAircraftType(reg);
     const airbusFields = document.querySelectorAll('.airbus-field');
     
-    // Show ULD/PMC only in Actual Mode + Airbus
     if (currentMode === 'ACTUAL' && type === 'AIRBUS') {
         airbusFields.forEach(field => field.style.display = 'flex');
     } else {
@@ -296,17 +284,17 @@ function calculateEZFW() {
     const cgo = parseFloat(document.getElementById('cgo').value) || 0;
 
     if (currentMode === 'TRADITIONAL') {
-        const type = document.getElementById('acReg').value;
-        const totalPax = parseInt(document.getElementById('totalPax').value) || 0;
+        const acRegVal = document.getElementById('acReg').value.toUpperCase();
+        let type = getAircraftType(acRegVal); 
         
         if(type === 'ATR') dow = 14015;
         else if(type === 'BOEING') dow = 43000;
         else if(type === 'AIRBUS') dow = 123500;
         
+        const totalPax = parseInt(document.getElementById('totalPax').value) || 0;
         totalPassengerWeight = totalPax * 75;
         
     } else {
-        // ACTUAL MODE
         let inputRaw = document.getElementById('acReg').value.toUpperCase();
         let key = inputRaw;
         if(inputRaw.includes("-")) key = inputRaw.split("-")[1];
@@ -325,9 +313,7 @@ function calculateEZFW() {
         const type = getAircraftType(key);
         totalPassengerWeight = (adult * ADULT_WEIGHT) + (child * CHILD_WEIGHT) + (infant * INFANT_WEIGHT);
         
-        if(type === 'AIRBUS') {
-            extraWeight = (uldCount * ULD_WEIGHT) + (pmcCount * PMC_WEIGHT);
-        }
+        if(type === 'AIRBUS') extraWeight = (uldCount * ULD_WEIGHT) + (pmcCount * PMC_WEIGHT);
     }
 
     const ezfw = totalPassengerWeight + totalBag + cgo + extraWeight + dow;
@@ -371,6 +357,175 @@ function updateTotalBaggageWeight() {
   bagInput.value = (bagPayingPax * perPaxBagWeight).toFixed(0);
 }
 
+// --- FLST AUTO GENERATOR ---
+function generateFromFLST() {
+    const text = document.getElementById('flstInput').value.trim();
+    const session = document.getElementById('time').value;
+    const flightDate = document.getElementById('flightDate').value;
+
+    if(!text || !session || !flightDate) {
+        alert("PLEASE FILL FLST, SESSION, AND DATE.");
+        return;
+    }
+
+    const lines = text.split('\n');
+    const parsedFlights = {}; 
+    const intlStations =["CCU", "SIN", "MLE", "BKK", "MCT", "CAN", "MAA", "DOH", "DXB", "AUH", "SHJ", "RUH", "JED", "KUL"];
+
+    lines.forEach(line => {
+        if(line.trim() === "") return;
+        const parts = line.trim().split(/\s+/);
+        if(parts.length < 5) return; 
+
+        let bsIndex = parts.indexOf("BS");
+        if(bsIndex === -1) return;
+
+        let fltNo = parseInt(parts[bsIndex + 1]);
+        if(isNaN(fltNo)) return;
+
+        let origin = parts[bsIndex + 2];
+        let dest = parts[bsIndex + 3];
+
+        if (!intlStations.includes(origin) && !intlStations.includes(dest)) {
+            return; 
+        }
+
+        let timeStr = "";
+        let isPM = false;
+        for(let i=0; i<parts.length; i++) {
+            if(/\d{2}:\d{2}/.test(parts[i])) {
+                timeStr = parts[i];
+                if(parts[i+1] === "PM") isPM = true;
+                if(parts[i+1] === "AM") isPM = false;
+                break;
+            }
+        }
+
+        let timeMins = 0;
+        if(timeStr) {
+            let[hh, mm] = timeStr.split(':').map(Number);
+            if(isPM && hh < 12) hh += 12;
+            if(!isPM && hh === 12) hh = 0;
+            timeMins = hh * 60 + mm;
+        }
+
+        let reg = "";
+        for(let i=0; i<parts.length; i++) {
+            if(parts[i].startsWith("S2-") || parts[i].startsWith("PK-")) {
+                reg = parts[i];
+                break;
+            }
+        }
+
+        let pax = 0;
+        for(let i = parts.length - 1; i >= 0; i--) {
+            if(!isNaN(parts[i]) && parts[i].length <= 3) {
+                pax = parseInt(parts[i]);
+                break;
+            }
+        }
+
+        parsedFlights[fltNo] = { fltNo, origin, dest, timeMins, reg, pax };
+    });
+
+    let flightsToAdd =[];
+    let startMins = 0, endMins = 0;
+    if(session === "MORNING") { startMins = 360; endMins = 840; }
+    else if(session === "EVENING") { startMins = 845; endMins = 1435; }
+
+    Object.values(parsedFlights).forEach(flt => {
+        if(flt.fltNo % 2 !== 0) { 
+            if(flt.timeMins >= startMins && flt.timeMins <= endMins) {
+                flightsToAdd.push(flt);
+                let arrivalFlt = parsedFlights[flt.fltNo + 1];
+                if(arrivalFlt) flightsToAdd.push(arrivalFlt);
+            }
+        }
+    });
+
+    flightsToAdd.forEach(flt => {
+        let key = flt.reg;
+        if(key && key.includes("-")) key = key.split("-")[1];
+        
+        let type = getAircraftType(key || "");
+
+        let crewConf = "";
+        if(currentMode === "ACTUAL" && key) {
+            if (type === "AIRBUS") crewConf = "2/10";
+            else if (type === "BOEING") crewConf = "2/5";
+            else if (type === "ATR") crewConf = "2/2";
+        }
+
+        let dow = 0;
+        if(currentMode === "ACTUAL" && key) {
+            if (key.startsWith("AK")) dow = AIRCRAFT_DATABASE["ATR_GENERIC"][crewConf] || 0;
+            else if (AIRCRAFT_DATABASE[key]) dow = AIRCRAFT_DATABASE[key][crewConf] || 0;
+        } else {
+            if(type === 'ATR') dow = 14015;
+            else if(type === 'BOEING') dow = 43000;
+            else if(type === 'AIRBUS') dow = 123500;
+        }
+
+        // Apply Pax Limits
+        let finalPax = flt.pax;
+        if (type === "ATR" && finalPax > 72) finalPax = 72;
+        else if (type === "BOEING" && finalPax > 189) finalPax = 189;
+        else if (type === "AIRBUS" && finalPax > 436) finalPax = 436;
+
+        let perPaxBagWeight = 0;
+        let from = flt.origin;
+        let dest = flt.dest;
+        if (from === 'CAN' && (dest === 'DAC' || dest === 'CGP')) perPaxBagWeight = 31;
+        else if ((from === 'DAC' && dest === 'CGP') || (from === 'CGP' && dest === 'DAC')) perPaxBagWeight = 15;
+        else if ((from === 'DAC' && dest === 'CXB') || (from === 'CXB' && dest === 'DAC')) perPaxBagWeight = 10;
+        else if (from === 'DAC' && dest === 'CCU') perPaxBagWeight = 12;
+        else if (from === 'CCU' && dest === 'DAC') perPaxBagWeight = 21;
+        else if (dest === 'DAC' || dest === 'CGP' || dest === 'CXB' || dest === 'CCU') perPaxBagWeight = baggageIn[from] || 0;
+        else perPaxBagWeight = baggageOut[dest] || 0;
+
+        let bagWeight = finalPax * perPaxBagWeight;
+        let paxWeight = finalPax * 75; 
+        let ezfw = dow + paxWeight + bagWeight;
+
+        let maxZfw = MAX_ZFW[type] || 62731;
+        let statusText = ezfw > maxZfw ? "LIMIT CROSSED" : "WITHIN LIMIT";
+
+        const rowObject = {
+            reg: currentMode === 'ACTUAL' ? (flt.reg || type) : type,
+            regCode: currentMode === 'ACTUAL' ? (key || type) : type,
+            crewConf: crewConf,
+            fltNo: 'BS-' + flt.fltNo,
+            origin: flt.origin,
+            dest: flt.dest,
+            adult: currentMode === 'ACTUAL' ? finalPax : 0,
+            child: 0,
+            infant: 0,
+            totalPax: currentMode === 'TRADITIONAL' ? finalPax : 0,
+            bag: bagWeight,
+            cgo: 0,
+            uld: '-',
+            pmc: '-',
+            ezfw: ezfw.toFixed(0),
+            status: statusText,
+            isLimitCrossed: ezfw > maxZfw,
+            mode: currentMode
+        };
+
+        tableData.push(rowObject);
+    });
+
+    tableData.sort((a, b) => {
+        const fltA = parseInt(a.fltNo.replace(/\D/g, '')) || 0;
+        const fltB = parseInt(b.fltNo.replace(/\D/g, '')) || 0;
+        return fltA - fltB;
+    });
+
+    saveDataLocally();
+    renderTableFromData();
+    document.getElementById('flstInput').value = ''; 
+    alert("FLIGHTS GENERATED SUCCESSFULLY!");
+}
+
 function addRow() {
   const regInput = document.getElementById('acReg').value;
   const fltNoInput = document.getElementById('fltNo').value;
@@ -381,14 +536,7 @@ function addRow() {
   }
 
   const currentEZFW = document.getElementById('ezfw').value;
-  let type = "";
-  if(currentMode === 'TRADITIONAL') {
-      type = regInput; 
-  } else {
-      let key = regInput;
-      if(regInput.includes("-")) key = regInput.split("-")[1];
-      type = getAircraftType(key);
-  }
+  let type = getAircraftType(regInput);
   
   const maxZfw = MAX_ZFW[type];
   let statusText = "WITHIN LIMIT";
@@ -404,6 +552,8 @@ function addRow() {
       if(regInput.includes("-")) key = regInput.split("-")[1];
       if(["BBG","BBH"].includes(key)) displayReg = "PK-" + key;
       else if(key.length === 3) displayReg = "S2-" + key;
+  } else {
+      displayReg = type; // Ensure "ATR", "BOEING", "AIRBUS" in traditional
   }
 
   const rowObject = {
@@ -466,24 +616,8 @@ function renderTableFromData() {
         tr.insertCell().textContent = row.origin;
         tr.insertCell().textContent = row.dest;
         
-        // Handle Pax Columns
         if (currentMode === 'TRADITIONAL') {
             tr.insertCell().textContent = row.totalPax; 
-            // Skip other columns handled by header visibility, but we need to insert placeholder if mixed mode? 
-            // No, table headers are static in number but hidden via CSS. 
-            // WAIT: insertCell inserts into the row structure. 
-            // If we hide the TH, we must NOT insert the TD or insert hidden TD. 
-            // Better strategy: Only insert data for visible columns.
-            // Since User can't mix modes easily in display, we assume all rows match current view.
-            // BUT previous rows might be different mode.
-            // Requirement says "Traditional page is fine".
-            // So we only render data relevant to current view? 
-            // Actually, if we have mixed data, it breaks. But assuming single session mode.
-            
-            // To be safe, we insert dummy cells if column is hidden, OR don't insert. 
-            // If TH is display:none, TD should be too or not exist? 
-            // If I don't insert TD, column alignment breaks if TH exists but hidden? No.
-            // Best: Don't insert TD for hidden TH.
         } else {
             tr.insertCell().textContent = row.adult;
             tr.insertCell().textContent = row.child;
@@ -526,9 +660,14 @@ function editRow(index) {
   editingRow = tr;
 
   document.getElementById('acReg').value = data.regCode;
-  if(currentMode === 'ACTUAL') handleRegInput();
   
-  document.getElementById('crewConf').value = data.crewConf;
+  if(currentMode === 'ACTUAL') {
+      handleRegInput();
+      document.getElementById('crewConf').value = data.crewConf;
+  } else {
+      toggleAirbusInputs(data.regCode); // Trigger visibility if needed
+  }
+
   document.getElementById('fltNo').value = data.fltNo.replace('BS-', '');
   document.getElementById('from').value = data.origin;
   document.getElementById('destination').value = data.dest;
@@ -542,13 +681,15 @@ function editRow(index) {
       document.getElementById('pmc').value = data.pmc === '-' ? '' : data.pmc;
   } else {
       document.getElementById('totalPax').value = data.totalPax;
-      updateTotalBaggageWeight(); // Trigger calc for traditional
+      updateTotalBaggageWeight(); 
       calculateEZFW();
   }
 
   document.getElementById('bag').value = data.bag;
   document.getElementById('cgo').value = data.cgo;
-  document.getElementById('ezfw').value = data.ezfw;
+  
+  document.getElementById('ezfw').value = data.ezfw; // Temporarily restore the exact saved value if custom edited, though oninput updates it.
+  
   document.getElementById('addBtn').textContent = 'UPDATE';
 }
 
@@ -599,7 +740,6 @@ function loadSavedData() {
     const savedTable = localStorage.getItem('tableData');
     if(savedTable) {
         tableData = JSON.parse(savedTable);
-        // We render after mode selection
     }
 }
 
@@ -613,7 +753,7 @@ function goBack() {
 
 function newReport() {
     if(confirm("START NEW REPORT? CURRENT TABLE DATA WILL BE CLEARED.")) {
-        tableData = [];
+        tableData =[];
         saveDataLocally();
         renderTableFromData();
         
@@ -655,7 +795,6 @@ function getCleanTableClone() {
     const originalTable = document.getElementById('resultTable');
     const tableClone = originalTable.cloneNode(true);
     
-    // Remove Action (Last) and Edit (First)
     tableClone.rows[0].deleteCell(-1); 
     tableClone.rows[0].deleteCell(0);
 
