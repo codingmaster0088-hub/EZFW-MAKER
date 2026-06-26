@@ -10,10 +10,10 @@ const AIRCRAFT_DATABASE = {
     "AJH": { "2/4": 42574, "2/5": 42649, "2/6": 42724, "3/4": 42654, "3/5": 42729, "3/6": 42804 },
     "BBG": { "2/0": 42534, "2/4": 42914, "2/5": 43009, "3/0": 42629, "3/4": 43009, "3/5": 43104 },
     "BBH": { "2/0": 42534, "2/4": 42914, "2/5": 43009, "3/0": 42629, "3/4": 43009, "3/5": 43104 },
+    "SXA": { "2/4": 43557, "2/5": 43632, "2/6": 43707, "3/4": 43642, "3/5": 43717, "3/6": 43792 },
     "ATR_GENERIC": { "2/2": 14015, "3/2": 14095, "2/0": 13865, "3/0": 13945 }
 };
 
-const MAX_ZFW = { "AIRBUS": 173000, "BOEING": 62731, "ATR": 21000 };
 const baggageOut = { DXB: 18, SHJ: 19, AUH: 19, SIN: 18, CAN: 14, DOH: 18, JED: 19, BKK: 12, MLE: 13, KUL: 16, RUH: 19, MAA: 12, MCT: 20 };
 const baggageIn = { MAA: 30, MLE: 35, BKK: 30, KUL: 35, SIN: 40, CAN: 40, DXB: 40, SHJ: 40, AUH: 40, DOH: 40, JED: 45, RUH: 45, MCT: 38 };
 
@@ -23,10 +23,11 @@ const INFANT_WEIGHT = 10;
 const ULD_WEIGHT = 68;
 const PMC_WEIGHT = 97;
 
-let tableData =[]; 
+let tableData = []; 
 let loadControllerName = '';
-let currentMode = ''; 
+let currentMode = 'ACTUAL'; 
 let editingRow = null;
+let activeIntervals = {};
 
 function showPopup(message) {
     const popup = document.getElementById('customPopup');
@@ -36,7 +37,9 @@ function showPopup(message) {
     setTimeout(() => { popup.style.display = 'none'; }, 2000);
 }
 
-window.onload = function() { checkLogin(); };
+window.onload = function() { 
+    checkLogin(); 
+};
 
 function checkLogin() {
     const savedName = localStorage.getItem('loadControllerName');
@@ -45,7 +48,8 @@ function checkLogin() {
         document.getElementById('welcome').style.display = 'none';
         document.getElementById('selection-page').style.display = 'flex';
         document.getElementById('welcomeUser').innerText = loadControllerName;
-        loadSavedData(); 
+        loadSavedData();
+        startTypingAnimations();
     } else {
         document.getElementById('welcome').style.display = 'flex';
         document.getElementById('selection-page').style.display = 'none';
@@ -70,22 +74,22 @@ function login() {
 }
 
 function selectMode(mode) {
-    currentMode = mode;
+    currentMode = 'ACTUAL'; 
     document.getElementById('selection-page').style.display = 'none';
     document.getElementById('form-page').style.display = 'block';
     
     document.getElementById('displayControllerName').textContent = loadControllerName;
-    document.getElementById('displayMode').textContent = `[${mode} MODE]`;
     
     setupInputsForMode();
     renderTableFromData(); 
+    startTypingAnimations();
 }
 
 function goToDash() {
     document.getElementById('form-page').style.display = 'none';
     document.getElementById('selection-page').style.display = 'flex';
-    currentMode = '';
     clearInputs();
+    startTypingAnimations();
 }
 
 function logout() {
@@ -96,66 +100,58 @@ function logout() {
     }, 2000);
 }
 
+function startTypingAnimations() {
+    runTypewriter("dashboardTyping", "INVENTED BY RADOAN RASEL", 120);
+    runTypewriter("headerTyping", "INVENTED BY RADOAN RASEL", 120);
+}
+
+function runTypewriter(elementId, text, speed) {
+    if (activeIntervals[elementId]) {
+        clearInterval(activeIntervals[elementId]);
+    }
+    const elem = document.getElementById(elementId);
+    if (!elem) return;
+    
+    let i = 0;
+    elem.innerHTML = '';
+    
+    function type() {
+        if (i < text.length) {
+            elem.innerHTML += text.charAt(i);
+            i++;
+        } else {
+            clearInterval(activeIntervals[elementId]);
+            setTimeout(() => {
+                runTypewriter(elementId, text, speed);
+            }, 3000);
+        }
+    }
+    activeIntervals[elementId] = setInterval(type, speed);
+}
+
 function setupInputsForMode() {
     const regContainer = document.getElementById('acRegContainer');
     const crewContainer = document.getElementById('crewConfContainer');
     const paxBreakdowns = document.querySelectorAll('.pax-breakdown');
     const totalPaxInput = document.getElementById('totalPax');
+
+    regContainer.innerHTML = `
+      <input list="acRegList" type="text" id="acReg" placeholder="A/C REG (e.g. HS-SXA)" oninput="handleRegInput()" onchange="this.className='has-value'">
+      <datalist id="acRegList">
+        <option value="S2-ALA"><option value="S2-ALB"><option value="S2-ALD">
+        <option value="S2-AJE"><option value="S2-AJF"><option value="S2-AJG"><option value="S2-AJH">
+        <option value="PK-BBG"><option value="PK-BBH">
+        <option value="HS-SXA">
+        <option value="S2-AKA"><option value="S2-AKB"><option value="S2-AKC"><option value="S2-AKD"><option value="S2-AKE">
+      </datalist>
+    `;
+    crewContainer.style.display = 'flex';
+    paxBreakdowns.forEach(el => el.style.display = 'flex');
     
-    const thAdt = document.getElementById('th-adt');
-    const thChd = document.getElementById('th-chd');
-    const thInf = document.getElementById('th-inf');
-    const thUld = document.getElementById('th-uld');
-    const thPmc = document.getElementById('th-pmc');
+    totalPaxInput.readOnly = true;
+    totalPaxInput.style.backgroundColor = '#e0e0e0';
+    totalPaxInput.oninput = null; 
 
-    regContainer.innerHTML = '';
-    
-    if (currentMode === 'TRADITIONAL') {
-        regContainer.innerHTML = `
-            <select id="acReg" onchange="handleRegInput(); this.className='has-value'">
-                <option value="" disabled selected>A/C REG</option>
-                <option value="ATR">ATR</option>
-                <option value="BOEING">BOEING</option>
-                <option value="AIRBUS">AIRBUS</option>
-            </select>
-        `;
-        crewContainer.style.display = 'none'; 
-        paxBreakdowns.forEach(el => el.style.display = 'none'); 
-        
-        totalPaxInput.readOnly = false; 
-        totalPaxInput.style.backgroundColor = '#fff';
-        totalPaxInput.placeholder = "ENTER TOTAL PAX";
-        totalPaxInput.oninput = function() { updateTotalBaggageWeight(); calculateEZFW(); };
-
-        thAdt.textContent = "PAX";
-        thChd.style.display = 'none';
-        thInf.style.display = 'none';
-        thUld.style.display = 'none';
-        thPmc.style.display = 'none';
-        
-    } else {
-        regContainer.innerHTML = `
-          <input list="acRegList" type="text" id="acReg" placeholder="A/C REG (e.g. AJE)" oninput="handleRegInput()" onchange="this.className='has-value'">
-          <datalist id="acRegList">
-            <option value="S2-ALA"><option value="S2-ALB"><option value="S2-ALD">
-            <option value="S2-AJE"><option value="S2-AJF"><option value="S2-AJG"><option value="S2-AJH">
-            <option value="PK-BBG"><option value="PK-BBH">
-            <option value="S2-AKA"><option value="S2-AKB"><option value="S2-AKC"><option value="S2-AKD"><option value="S2-AKE">
-          </datalist>
-        `;
-        crewContainer.style.display = 'flex';
-        paxBreakdowns.forEach(el => el.style.display = 'flex');
-        
-        totalPaxInput.readOnly = true;
-        totalPaxInput.style.backgroundColor = '#e0e0e0';
-        totalPaxInput.oninput = null; 
-
-        thAdt.textContent = "ADT";
-        thChd.style.display = '';
-        thInf.style.display = '';
-        thUld.style.display = '';
-        thPmc.style.display = '';
-    }
     toggleAirbusInputs();
 }
 
@@ -207,13 +203,6 @@ function handleFlightNoInput() {
 }
 
 function handleRegInput() {
-    if (currentMode === 'TRADITIONAL') {
-        const val = document.getElementById('acReg').value;
-        toggleAirbusInputs(val); 
-        calculateEZFW(); 
-        return;
-    }
-
     let inputRaw = document.getElementById('acReg').value.toUpperCase();
     document.getElementById('acReg').value = inputRaw;
     
@@ -225,12 +214,12 @@ function handleRegInput() {
     
     let options = [];
     if (["ALA", "ALB", "ALD"].includes(key)) {
-        options =["2/0", "2/9", "2/10", "2/11", "3/0", "3/9", "3/10", "3/11", "4/0", "4/9", "4/10", "4/11"];
-    } else if (["AJE", "AJF", "AJG", "AJH", "BBG", "BBH"].includes(key)) {
-        if(key.startsWith("BB")) options =["2/0", "2/4", "2/5", "3/0", "3/4", "3/5"];
-        else options =["2/4", "2/5", "2/6", "3/4", "3/5", "3/6"];
+        options = ["2/0", "2/9", "2/10", "2/11", "3/0", "3/9", "3/10", "3/11", "4/0", "4/9", "4/10", "4/11"];
+    } else if (["AJE", "AJF", "AJG", "AJH", "BBG", "BBH", "SXA"].includes(key)) {
+        if(key.startsWith("BB")) options = ["2/0", "2/4", "2/5", "3/0", "3/4", "3/5"];
+        else options = ["2/4", "2/5", "2/6", "3/4", "3/5", "3/6"];
     } else if (key.startsWith("AK")) {
-        options =["2/2", "3/2", "2/0", "3/0"];
+        options = ["2/2", "3/2", "2/0", "3/0"];
     }
 
     options.forEach(opt => {
@@ -247,18 +236,28 @@ function getAircraftType(input) {
     if (!input) return "BOEING";
     input = input.toUpperCase();
     
-    if (currentMode === 'TRADITIONAL') {
-        if (input === 'ATR' || input === 'BOEING' || input === 'AIRBUS') return input;
-    }
-    
     let key = input;
     if (input.includes("-")) key = input.split("-")[1];
     
     if (key.startsWith("AL")) return "AIRBUS";
     if (key.startsWith("AK")) return "ATR";
-    if (key.startsWith("AJ") || key.startsWith("BB")) return "BOEING";
+    if (key.startsWith("AJ") || key.startsWith("BB") || key === "SXA") return "BOEING";
     
     return "BOEING"; 
+}
+
+function getAircraftMaxZFW(regCode) {
+    let key = regCode.toUpperCase();
+    if (key.includes("-")) key = key.split("-")[1];
+    
+    if (key === "SXA") return 61000;
+    if (key === "BBG") return 61688;
+    
+    const type = getAircraftType(key);
+    if (type === "AIRBUS") return 173000;
+    if (type === "BOEING") return 62731;
+    if (type === "ATR") return 21000;
+    return 62731;
 }
 
 function toggleAirbusInputs(regKey) {
@@ -266,7 +265,7 @@ function toggleAirbusInputs(regKey) {
     const type = getAircraftType(reg);
     const airbusFields = document.querySelectorAll('.airbus-field');
     
-    if (currentMode === 'ACTUAL' && type === 'AIRBUS') {
+    if (type === 'AIRBUS') {
         airbusFields.forEach(field => field.style.display = 'flex');
     } else {
         airbusFields.forEach(field => field.style.display = 'none');
@@ -283,45 +282,32 @@ function calculateEZFW() {
     const totalBag = parseFloat(document.getElementById('bag').value) || 0;
     const cgo = parseFloat(document.getElementById('cgo').value) || 0;
 
-    if (currentMode === 'TRADITIONAL') {
-        const acRegVal = document.getElementById('acReg').value.toUpperCase();
-        let type = getAircraftType(acRegVal); 
-        
-        if(type === 'ATR') dow = 14015;
-        else if(type === 'BOEING') dow = 43000;
-        else if(type === 'AIRBUS') dow = 123500;
-        
-        const totalPax = parseInt(document.getElementById('totalPax').value) || 0;
-        totalPassengerWeight = totalPax * 75;
-        
-    } else {
-        let inputRaw = document.getElementById('acReg').value.toUpperCase();
-        let key = inputRaw;
-        if(inputRaw.includes("-")) key = inputRaw.split("-")[1];
+    let inputRaw = document.getElementById('acReg').value.toUpperCase();
+    let key = inputRaw;
+    if(inputRaw.includes("-")) key = inputRaw.split("-")[1];
 
-        const crewConf = document.getElementById('crewConf').value;
-        
-        if (key.startsWith("AK")) dow = AIRCRAFT_DATABASE["ATR_GENERIC"][crewConf] || 0;
-        else if (AIRCRAFT_DATABASE[key]) dow = AIRCRAFT_DATABASE[key][crewConf] || 0;
+    const crewConf = document.getElementById('crewConf').value;
+    
+    if (key === "SXA") dow = AIRCRAFT_DATABASE["SXA"][crewConf] || 0;
+    else if (key.startsWith("AK")) dow = AIRCRAFT_DATABASE["ATR_GENERIC"][crewConf] || 0;
+    else if (AIRCRAFT_DATABASE[key]) dow = AIRCRAFT_DATABASE[key][crewConf] || 0;
 
-        const adult = parseInt(document.getElementById('adult').value) || 0;
-        const child = parseInt(document.getElementById('child').value) || 0;
-        const infant = parseInt(document.getElementById('infant').value) || 0;
-        const uldCount = parseFloat(document.getElementById('uld').value) || 0;
-        const pmcCount = parseFloat(document.getElementById('pmc').value) || 0;
+    const adult = parseInt(document.getElementById('adult').value) || 0;
+    const child = parseInt(document.getElementById('child').value) || 0;
+    const infant = parseInt(document.getElementById('infant').value) || 0;
+    const uldCount = parseFloat(document.getElementById('uld').value) || 0;
+    const pmcCount = parseFloat(document.getElementById('pmc').value) || 0;
 
-        const type = getAircraftType(key);
-        totalPassengerWeight = (adult * ADULT_WEIGHT) + (child * CHILD_WEIGHT) + (infant * INFANT_WEIGHT);
-        
-        if(type === 'AIRBUS') extraWeight = (uldCount * ULD_WEIGHT) + (pmcCount * PMC_WEIGHT);
-    }
+    const type = getAircraftType(key);
+    totalPassengerWeight = (adult * ADULT_WEIGHT) + (child * CHILD_WEIGHT) + (infant * INFANT_WEIGHT);
+    
+    if(type === 'AIRBUS') extraWeight = (uldCount * ULD_WEIGHT) + (pmcCount * PMC_WEIGHT);
 
     const ezfw = totalPassengerWeight + totalBag + cgo + extraWeight + dow;
     document.getElementById('ezfw').value = ezfw > 0 ? ezfw.toFixed(0) : "";
 }
 
 function updatePaxAndCalc() {
-    if(currentMode === 'TRADITIONAL') return; 
     const adult = parseInt(document.getElementById('adult').value) || 0;
     const child = parseInt(document.getElementById('child').value) || 0;
     const infant = parseInt(document.getElementById('infant').value) || 0;
@@ -334,14 +320,9 @@ function updateTotalBaggageWeight() {
   const from = document.getElementById('from').value;
   const dest = document.getElementById('destination').value;
   
-  let bagPayingPax = 0;
-  if(currentMode === 'TRADITIONAL') {
-      bagPayingPax = parseInt(document.getElementById('totalPax').value) || 0;
-  } else {
-      const adult = parseInt(document.getElementById('adult').value) || 0;
-      const child = parseInt(document.getElementById('child').value) || 0;
-      bagPayingPax = adult + child; 
-  }
+  const adult = parseInt(document.getElementById('adult').value) || 0;
+  const child = parseInt(document.getElementById('child').value) || 0;
+  let bagPayingPax = adult + child; 
 
   const bagInput = document.getElementById('bag');
   let perPaxBagWeight = 0;
@@ -370,7 +351,7 @@ function generateFromFLST() {
 
     const lines = text.split('\n');
     const parsedFlights = {}; 
-    const intlStations =["CCU", "SIN", "MLE", "BKK", "MCT", "CAN", "MAA", "DOH", "DXB", "AUH", "SHJ", "RUH", "JED", "KUL"];
+    const intlStations = ["CCU", "SIN", "MLE", "BKK", "MCT", "CAN", "MAA", "DOH", "DXB", "AUH", "SHJ", "RUH", "JED", "KUL"];
 
     lines.forEach(line => {
         if(line.trim() === "") return;
@@ -403,7 +384,7 @@ function generateFromFLST() {
 
         let timeMins = 0;
         if(timeStr) {
-            let[hh, mm] = timeStr.split(':').map(Number);
+            let [hh, mm] = timeStr.split(':').map(Number);
             if(isPM && hh < 12) hh += 12;
             if(!isPM && hh === 12) hh = 0;
             timeMins = hh * 60 + mm;
@@ -411,7 +392,7 @@ function generateFromFLST() {
 
         let reg = "";
         for(let i=0; i<parts.length; i++) {
-            if(parts[i].startsWith("S2-") || parts[i].startsWith("PK-")) {
+            if(parts[i].startsWith("S2-") || parts[i].startsWith("PK-") || parts[i].startsWith("HS-") || parts[i] === "SXA") {
                 reg = parts[i];
                 break;
             }
@@ -428,7 +409,7 @@ function generateFromFLST() {
         parsedFlights[fltNo] = { fltNo, origin, dest, timeMins, reg, pax };
     });
 
-    let flightsToAdd =[];
+    let flightsToAdd = [];
     let startMins = 0, endMins = 0;
     if(session === "MORNING") { startMins = 360; endMins = 840; }
     else if(session === "EVENING") { startMins = 845; endMins = 1435; }
@@ -450,20 +431,17 @@ function generateFromFLST() {
         let type = getAircraftType(key || "");
 
         let crewConf = "";
-        if(currentMode === "ACTUAL" && key) {
+        if(key) {
             if (type === "AIRBUS") crewConf = "2/10";
             else if (type === "BOEING") crewConf = "2/5";
             else if (type === "ATR") crewConf = "2/2";
         }
 
         let dow = 0;
-        if(currentMode === "ACTUAL" && key) {
-            if (key.startsWith("AK")) dow = AIRCRAFT_DATABASE["ATR_GENERIC"][crewConf] || 0;
+        if(key) {
+            if (key === "SXA") dow = AIRCRAFT_DATABASE["SXA"][crewConf] || 0;
+            else if (key.startsWith("AK")) dow = AIRCRAFT_DATABASE["ATR_GENERIC"][crewConf] || 0;
             else if (AIRCRAFT_DATABASE[key]) dow = AIRCRAFT_DATABASE[key][crewConf] || 0;
-        } else {
-            if(type === 'ATR') dow = 14015;
-            else if(type === 'BOEING') dow = 43000;
-            else if(type === 'AIRBUS') dow = 123500;
         }
 
         // Apply Pax Limits
@@ -487,28 +465,34 @@ function generateFromFLST() {
         let paxWeight = finalPax * 75; 
         let ezfw = dow + paxWeight + bagWeight;
 
-        let maxZfw = MAX_ZFW[type] || 62731;
-        let statusText = ezfw > maxZfw ? "LIMIT CROSSED" : "WITHIN LIMIT";
+        let maxZfw = getAircraftMaxZFW(flt.reg || type);
+        let isLimitCrossed = ezfw > maxZfw;
+        let statusText = isLimitCrossed ? "LIMIT CROSSED" : "WITHIN LIMIT";
+        let finalEZFWValue = isLimitCrossed ? maxZfw : ezfw;
+
+        let displayReg = flt.reg || type;
+        if (key === "SXA") displayReg = "HS-SXA";
 
         const rowObject = {
-            reg: currentMode === 'ACTUAL' ? (flt.reg || type) : type,
-            regCode: currentMode === 'ACTUAL' ? (key || type) : type,
+            reg: displayReg,
+            regCode: key || type,
             crewConf: crewConf,
             fltNo: 'BS-' + flt.fltNo,
             origin: flt.origin,
             dest: flt.dest,
-            adult: currentMode === 'ACTUAL' ? finalPax : 0,
+            adult: finalPax,
             child: 0,
             infant: 0,
-            totalPax: currentMode === 'TRADITIONAL' ? finalPax : 0,
+            totalPax: finalPax,
             bag: bagWeight,
             cgo: 0,
             uld: '-',
             pmc: '-',
-            ezfw: ezfw.toFixed(0),
+            ezfw: finalEZFWValue.toFixed(0),
+            rawEzfw: ezfw.toFixed(0),
             status: statusText,
-            isLimitCrossed: ezfw > maxZfw,
-            mode: currentMode
+            isLimitCrossed: isLimitCrossed,
+            mode: 'ACTUAL'
         };
 
         tableData.push(rowObject);
@@ -535,26 +519,27 @@ function addRow() {
      return;
   }
 
-  const currentEZFW = document.getElementById('ezfw').value;
+  const currentEZFW = parseFloat(document.getElementById('ezfw').value) || 0;
   let type = getAircraftType(regInput);
   
-  const maxZfw = MAX_ZFW[type];
+  const maxZfw = getAircraftMaxZFW(regInput);
   let statusText = "WITHIN LIMIT";
   let isLimitCrossed = false;
-  if (parseFloat(currentEZFW) > maxZfw) {
+  let displayEZFW = currentEZFW;
+
+  if (currentEZFW > maxZfw) {
       isLimitCrossed = true;
       statusText = "LIMIT CROSSED";
+      displayEZFW = maxZfw; 
   }
 
   let displayReg = regInput;
-  if (currentMode === 'ACTUAL') {
-      let key = regInput;
-      if(regInput.includes("-")) key = regInput.split("-")[1];
-      if(["BBG","BBH"].includes(key)) displayReg = "PK-" + key;
-      else if(key.length === 3) displayReg = "S2-" + key;
-  } else {
-      displayReg = type; // Ensure "ATR", "BOEING", "AIRBUS" in traditional
-  }
+  let key = regInput;
+  if(regInput.includes("-")) key = regInput.split("-")[1];
+  
+  if(["BBG","BBH"].includes(key)) displayReg = "PK-" + key;
+  else if(key === "SXA") displayReg = "HS-SXA";
+  else if(key.length === 3) displayReg = "S2-" + key;
 
   const rowObject = {
     reg: displayReg,
@@ -570,10 +555,11 @@ function addRow() {
     cgo: document.getElementById('cgo').value || 0,
     uld: document.getElementById('uld').value || '-',
     pmc: document.getElementById('pmc').value || '-',
-    ezfw: currentEZFW,
+    ezfw: displayEZFW.toFixed(0),
+    rawEzfw: currentEZFW.toFixed(0),
     status: statusText,
     isLimitCrossed: isLimitCrossed,
-    mode: currentMode,
+    mode: 'ACTUAL',
     totalPax: document.getElementById('totalPax').value 
   };
 
@@ -616,21 +602,15 @@ function renderTableFromData() {
         tr.insertCell().textContent = row.origin;
         tr.insertCell().textContent = row.dest;
         
-        if (currentMode === 'TRADITIONAL') {
-            tr.insertCell().textContent = row.totalPax; 
-        } else {
-            tr.insertCell().textContent = row.adult;
-            tr.insertCell().textContent = row.child;
-            tr.insertCell().textContent = row.infant;
-        }
+        tr.insertCell().textContent = row.adult;
+        tr.insertCell().textContent = row.child;
+        tr.insertCell().textContent = row.infant;
 
         tr.insertCell().textContent = row.bag;
         tr.insertCell().textContent = row.cgo;
         
-        if (currentMode === 'ACTUAL') {
-            tr.insertCell().textContent = row.uld;
-            tr.insertCell().textContent = row.pmc;
-        }
+        tr.insertCell().textContent = row.uld;
+        tr.insertCell().textContent = row.pmc;
 
         const ezfwCell = tr.insertCell();
         ezfwCell.textContent = row.ezfw;
@@ -654,42 +634,29 @@ function renderTableFromData() {
 
 function editRow(index) {
   const data = tableData[index];
-  if(data.mode !== currentMode) selectMode(data.mode);
-
   const tr = document.querySelector('#resultTable tbody').rows[index];
   editingRow = tr;
 
   document.getElementById('acReg').value = data.regCode;
+  handleRegInput();
   
-  if(currentMode === 'ACTUAL') {
-      handleRegInput();
-      document.getElementById('crewConf').value = data.crewConf;
-  } else {
-      toggleAirbusInputs(data.regCode); // Trigger visibility if needed
-  }
-
+  document.getElementById('crewConf').value = data.crewConf;
   document.getElementById('fltNo').value = data.fltNo.replace('BS-', '');
   document.getElementById('from').value = data.origin;
   document.getElementById('destination').value = data.dest;
   
-  if(currentMode === 'ACTUAL') {
-      document.getElementById('adult').value = data.adult;
-      document.getElementById('child').value = data.child;
-      document.getElementById('infant').value = data.infant;
-      updatePaxAndCalc();
-      document.getElementById('uld').value = data.uld === '-' ? '' : data.uld;
-      document.getElementById('pmc').value = data.pmc === '-' ? '' : data.pmc;
-  } else {
-      document.getElementById('totalPax').value = data.totalPax;
-      updateTotalBaggageWeight(); 
-      calculateEZFW();
-  }
+  document.getElementById('adult').value = data.adult;
+  document.getElementById('child').value = data.child;
+  document.getElementById('infant').value = data.infant;
+  updatePaxAndCalc();
+  
+  document.getElementById('uld').value = data.uld === '-' ? '' : data.uld;
+  document.getElementById('pmc').value = data.pmc === '-' ? '' : data.pmc;
 
   document.getElementById('bag').value = data.bag;
   document.getElementById('cgo').value = data.cgo;
   
-  document.getElementById('ezfw').value = data.ezfw; // Temporarily restore the exact saved value if custom edited, though oninput updates it.
-  
+  document.getElementById('ezfw').value = data.rawEzfw || data.ezfw; 
   document.getElementById('addBtn').textContent = 'UPDATE';
 }
 
@@ -751,42 +718,51 @@ function goBack() {
     }
 }
 
+// --- NEW REPORT FUNCTION ---
 function newReport() {
     if(confirm("START NEW REPORT? CURRENT TABLE DATA WILL BE CLEARED.")) {
-        tableData =[];
+        tableData = [];
         saveDataLocally();
         renderTableFromData();
         
         document.getElementById('acReg').value = '';
         document.getElementById('crewConf').value = '';
-        if(currentMode === 'ACTUAL') {
-             document.getElementById('crewConf').innerHTML = ''; 
-        }
         clearInputs();
     }
 }
+
+// --- NEW MODERN AVIATION EXPORTS ---
 
 function getReportHeaderHTML() {
     const session = document.getElementById('time').value || "SESSION";
     const dateVal = document.getElementById('flightDate').value || "DATE";
     return `
-    <div class="report-header" style="text-align:center; margin-bottom: 25px; font-family: Arial, sans-serif; color: #000;">
-        <h1 style="margin:0; font-size: 32px; font-weight: bold; text-transform: uppercase;">US BANGLA AIRLINES</h1>
-        <h3 style="margin:5px 0; font-size: 20px; font-weight: normal; text-transform: uppercase;">EZFW FOR ${session}</h3>
-        <h3 style="margin:5px 0; font-size: 20px; font-weight: normal; text-transform: uppercase;">DATE: ${dateVal}</h3>
+    <div class="report-header" style="text-align:center; margin-bottom: 30px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #0b2265; position: relative; padding-bottom: 15px; border-bottom: 3px double #0b2265;">
+        <div style="display: inline-block; vertical-align: middle; margin-right: 15px;">
+            <span style="font-size: 38px; font-weight: 900; letter-spacing: 2px; color: #0b2265; text-transform: uppercase;">US-BANGLA AIRLINES</span>
+        </div>
+        <div style="font-size: 14px; color: #e11a22; font-weight: bold; letter-spacing: 4px; margin-top: 5px; text-transform: uppercase;">LOAD CONTROL DEPARTMENT</div>
+        <h2 style="margin: 15px 0 5px 0; font-size: 20px; font-weight: 700; color: #333; text-transform: uppercase; background: #f4f6f9; display: inline-block; padding: 6px 20px; border-radius: 20px; border: 1px solid #ddd;">
+            EZFW REPORT FOR ${session}
+        </h2>
+        <div style="margin-top: 8px; font-size: 15px; color: #555; font-weight: 600;">DATE: <span style="color: #0b2265;">${dateVal}</span></div>
     </div>`;
 }
 
 function getReportFooterHTML() {
     return `
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 50px; width: 100%; font-family: Arial, sans-serif;">
-        <div style="background: yellow; color: black; padding: 12px; border: 1px solid #000; font-weight: bold; font-size: 14px; height: fit-content;">
-            NOTE: PLEASE CROSS-CHECK WITH LOAD CONTROLLER FOR ACTUAL ZFW.
+    <div style="display: flex; justify-content: space-between; align-items: stretch; margin-top: 40px; width: 100%; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+        <div style="background: #fff5f5; color: #c53030; padding: 20px; border-left: 5px solid #e11a22; font-weight: bold; font-size: 13px; max-width: 55%; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center;">
+            <div>
+                <span style="font-size: 14px; text-transform: uppercase; color: #e11a22; display: block; margin-bottom: 5px;">⚠️ Verification Alert</span>
+                NOTE: PLEASE CROSS-CHECK WITH THE DUTY LOAD CONTROLLER FOR THE ACTUAL ZERO FUEL WEIGHT (ZFW) BEFORE DEPARTURE.
+            </div>
         </div>
-        <div style="background: #87CEEB; color: black; padding: 20px; border: 1px solid #000; text-align: center; min-width: 220px;">
-            <p style="margin: 0; font-size: 11px; font-weight: bold;">PREPARED BY</p>
-            <h3 style="margin: 8px 0; font-size: 18px; font-weight: bold; text-transform: uppercase;">${loadControllerName}</h3>
-            <p style="margin: 0; font-size: 11px; font-weight: bold;">LOAD CONTROL OFFICER</p>
+        <div style="background: linear-gradient(135deg, #0b2265 0%, #1a365d 100%); color: white; padding: 20px; border-radius: 6px; text-align: center; min-width: 260px; box-shadow: 0 4px 10px rgba(11,34,101,0.15);">
+            <p style="margin: 0; font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #9bb1ff; text-transform: uppercase;">REPORT PREPARED BY</p>
+            <h3 style="margin: 8px 0; font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff;">${loadControllerName}</h3>
+            <div style="display: inline-block; height: 1px; width: 40px; background: #e11a22; margin-bottom: 8px;"></div>
+            <p style="margin: 0; font-size: 11px; font-weight: 600; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">LOAD CONTROL OFFICER</p>
         </div>
     </div>`;
 }
@@ -805,38 +781,50 @@ function getCleanTableClone() {
     
     tableClone.style.width = '100%';
     tableClone.style.borderCollapse = 'collapse';
-    tableClone.style.color = '#000';
-    tableClone.style.fontFamily = 'Arial, sans-serif';
+    tableClone.style.color = '#1e293b';
+    tableClone.style.fontFamily = "'Helvetica Neue', Helvetica, Arial, sans-serif";
+    tableClone.style.boxShadow = "0 4px 6px -1px rgba(0, 0, 0, 0.05)";
     
     for(let i=0; i<tableClone.rows.length; i++) {
         const row = tableClone.rows[i];
         for(let j=0; j<row.cells.length; j++) {
-            row.cells[j].style.border = '1px solid #000';
-            row.cells[j].style.padding = '10px';
+            row.cells[j].style.border = '1px solid #e2e8f0';
+            row.cells[j].style.padding = '12px 10px';
             row.cells[j].style.textAlign = 'center';
-            row.cells[j].style.fontSize = '13px';
+            row.cells[j].style.fontSize = '14px'; // Increased font size for best view experience
+            row.cells[j].style.fontWeight = 'bold'; // Made all table cell values BOLD
+
             if(i===0) {
-                row.cells[j].style.fontWeight = 'bold';
-                row.cells[j].style.backgroundColor = '#00bcd4'; 
-                row.cells[j].style.color = '#fff';
+                row.cells[j].style.fontWeight = '700';
+                row.cells[j].style.backgroundColor = '#0b2265'; 
+                row.cells[j].style.color = '#ffffff';
+                row.cells[j].style.textTransform = 'uppercase';
+                row.cells[j].style.letterSpacing = '0.5px';
+                row.cells[j].style.border = '1px solid #0b2265';
             }
         }
         if(i > 0) {
             const fltCellText = row.cells[1].textContent;
             const fltNum = parseInt(fltCellText.replace(/\D/g, ''));
             if (!isNaN(fltNum)) {
-                if (fltNum % 2 === 0) row.style.backgroundColor = '#ADD8E6'; 
-                else row.style.backgroundColor = '#fff'; 
+                if (fltNum % 2 === 0) {
+                    row.style.backgroundColor = '#bae6fd'; // Applied soft Sky Blue color for Arrival Flights
+                } else {
+                    row.style.backgroundColor = '#ffffff'; 
+                }
             } else {
-                row.style.backgroundColor = '#fff';
+                row.style.backgroundColor = '#ffffff';
             }
             const statCell = row.cells[row.cells.length - 1];
+            const ezfwCell = row.cells[row.cells.length - 2];
             if(statCell.textContent.includes("LIMIT CROSSED")) {
-                statCell.style.color = 'red';
-                statCell.style.fontWeight = 'bold';
+                statCell.innerHTML = '<span style="background-color: #fee2e2; color: #ef4444; padding: 6px 12px; border-radius: 12px; font-weight: bold; font-size: 13px;">LIMIT CROSSED</span>';
+                ezfwCell.style.color = '#ef4444';
+                ezfwCell.style.fontWeight = 'bold';
             } else {
-                statCell.style.color = 'green';
-                statCell.style.fontWeight = 'bold';
+                statCell.innerHTML = '<span style="background-color: #dcfce7; color: #22c55e; padding: 6px 12px; border-radius: 12px; font-weight: bold; font-size: 13px;">WITHIN LIMIT</span>';
+                ezfwCell.style.fontWeight = 'bold';
+                ezfwCell.style.color = '#1e293b';
             }
         }
     }
@@ -849,7 +837,7 @@ function downloadTable() {
   const footer = getReportFooterHTML();
   const table = getCleanTableClone().outerHTML;
   
-  const blob = new Blob([`<html><head><title>EZFW REPORT</title><style>body { font-family: Arial, sans-serif; padding: 20px; text-transform: uppercase; }</style></head><body>${header}${table}${footer}</body></html>`], {type: 'text/html'});
+  const blob = new Blob([`<html><head><title>EZFW REPORT</title><style>body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; background-color: #fff; text-transform: uppercase; }</style></head><body>${header}${table}${footer}</body></html>`], {type: 'text/html'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -864,10 +852,10 @@ function downloadJPG() {
     const reportContainer = document.createElement('div');
     reportContainer.style.position = 'absolute';
     reportContainer.style.left = '-9999px';
-    reportContainer.style.width = '1000px';
-    reportContainer.style.padding = '40px'; 
-    reportContainer.style.background = '#fff';
-    reportContainer.style.fontFamily = 'Arial, sans-serif';
+    reportContainer.style.width = '1050px';
+    reportContainer.style.padding = '45px'; 
+    reportContainer.style.background = '#ffffff';
+    reportContainer.style.fontFamily = "'Helvetica Neue', Helvetica, Arial, sans-serif";
     reportContainer.style.textTransform = 'uppercase';
 
     reportContainer.innerHTML = getReportHeaderHTML();
