@@ -38,9 +38,7 @@ body {
     border: 2px solid rgba(255,255,255,0.2);
     transition: transform 0.2s, box-shadow 0.2s;
 }
-.btn-traditional { background-color: #FF9800; color: white; }
 .btn-actual { background-color: #4CAF50; color: white; }
-
 .mode-btn:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(255,255,255,0.3); }
 
 /* --- POPUP STYLES --- */
@@ -67,6 +65,39 @@ body {
 
 h1 { font-size: 2.5em; font-weight: bold; margin-bottom: 0.2em; line-height: 1.2; }
 h3 { font-weight: 300; margin-bottom: 1.5em; font-size: 1.1em; letter-spacing: 1px; }
+
+/* --- Typing Animations & Banners --- */
+.typing-container {
+  height: 30px;
+  margin-bottom: 15px;
+}
+.typing-text-header {
+  color: #00bcd4;
+  font-weight: bold;
+  font-size: 1.2em;
+  letter-spacing: 2px;
+  border-right: 2px solid #00bcd4;
+  display: inline-block;
+  white-space: nowrap;
+  animation: blink 0.7s infinite;
+}
+.header-typing-container {
+  flex-grow: 1;
+  text-align: center;
+}
+.header-typing-banner {
+  color: #00bcd4;
+  font-weight: bold;
+  font-size: 1.1em;
+  border-right: 2px solid #00bcd4;
+  white-space: nowrap;
+  animation: blink 0.7s infinite;
+  letter-spacing: 1px;
+  display: inline-block;
+}
+@keyframes blink {
+  50% { border-color: transparent; }
+}
 
 /* --- Buttons --- */
 button {
@@ -153,12 +184,14 @@ th { background: #00bcd4; color: white; font-weight: bold; }
   .bottom-grid { grid-template-columns: 1fr auto; }
   .actions { grid-template-columns: 1fr 1fr; }
   th, td { padding: 8px 4px; font-size: 0.85em; }
+  .header-typing-banner { font-size: 0.9em; }
 }
 
 @media screen and (max-width: 480px) {
   .actions { grid-template-columns: 1fr; }
   h1 { font-size: 1.5em; }
   h3 { font-size: 0.9em; }
+  .header-typing-banner { font-size: 0.75em; }
 }
 
 input:focus, select:focus {
