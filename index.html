@@ -37,10 +37,13 @@
         <button onclick="logout()" class="logout-btn">LOG OUT</button>
     </div>
     <div class="welcome-content">
+      <!-- Top Typing Animation -->
+      <div class="typing-container">
+        <span id="dashboardTyping" class="typing-text-header"></span>
+      </div>
       <h1 class="dynamic-welcome">WELCOME <br><span id="welcomeUser" style="color: #00bcd4;"></span></h1>
       <h3 style="margin-top: 20px;">CREATE EZFW WITH..</h3>
       <div class="selection-buttons">
-        <button onclick="selectMode('TRADITIONAL')" class="mode-btn btn-traditional">TRADITIONAL</button>
         <button onclick="selectMode('ACTUAL')" class="mode-btn btn-actual">ACTUAL</button>
       </div>
     </div>
@@ -52,7 +55,11 @@
     <div class="app-header">
        <div class="user-info">
          <span>OFFICER: <b id="displayControllerName"></b></span>
-         <span id="displayMode" style="font-size: 0.8em; color: #aaa; margin-left: 10px;"></span>
+         <span id="displayMode" style="font-size: 0.8em; color: #aaa; margin-left: 10px;">[ACTUAL MODE]</span>
+       </div>
+       <!-- Center Typing Animation -->
+       <div class="header-typing-container">
+         <span id="headerTyping" class="header-typing-banner"></span>
        </div>
        <div class="header-buttons">
            <button onclick="goToDash()" class="dash-btn">DASH</button>
@@ -171,13 +178,13 @@
             <th>FLT NO</th>
             <th>ORG</th>
             <th>DES</th>
-            <th id="th-adt">ADT</th> 
-            <th id="th-chd">CHD</th> 
-            <th id="th-inf">INF</th> 
+            <th>ADT</th> 
+            <th>CHD</th> 
+            <th>INF</th> 
             <th>BAG</th>
             <th>CGO</th>
-            <th id="th-uld" class="airbus-col">ULD</th> 
-            <th id="th-pmc" class="airbus-col">PMC</th> 
+            <th>ULD</th> 
+            <th>PMC</th> 
             <th>EZFW</th>
             <th>STATUS</th>
             <th>ACTION</th>
